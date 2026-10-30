@@ -394,12 +394,30 @@ table.t td .mb>i{display:block;height:100%}
   <!-- PRODUTOS -->
   <div id="prodView" class="hidden"><div class="dash">
     <div class="dash-head">
-      <h2>📦 Produtos cotados</h2>
+      <h2>📦 Produtos</h2>
+      <div class="seg" id="pFonte"><button class="on" data-f="crm" onclick="setFonte('crm')">📋 Cotados no CRM</button><button data-f="orc" onclick="setFonte('orc')">🧾 Orçados no simulador</button></div>
       <select id="pPer" onchange="renderProd()">
         <option value="mes">Este mês</option><option value="passado">Mês passado</option><option value="90">Últimos 90 dias</option><option value="tudo">Todo o período</option>
       </select>
       <select id="pVend" class="hidden" onchange="renderProd()"></select>
     </div>
+    <div id="prodOrc" class="hidden">
+      <div class="kpis" id="oKpis"></div>
+      <div class="row2">
+        <div class="panel"><div class="panel-t">🏆 Mais orçados <small>em quantos orçamentos o produto entrou</small></div><div id="oTop"></div></div>
+        <div class="panel"><div class="panel-t">💰 Maior valor orçado <small>soma dos orçamentos</small></div><div id="oValor"></div></div>
+      </div>
+      <div class="panel"><div class="panel-t">📅 Orçamentos por dia <small id="oDiasSub"></small></div><div id="oDias"></div></div>
+      <div class="panel">
+        <div class="panel-t">📋 Todos os produtos orçados <small>orçamentos enviados pelo simulador (copiar WhatsApp ou imprimir)</small></div>
+        <div class="toolbar" style="padding:0 0 10px">
+          <input type="search" id="oBusca" placeholder="🔍 Filtrar produto…" oninput="renderOrc()" style="flex:1;max-width:340px">
+          <select id="oOrd" onchange="renderOrc()"><option value="n">Mais orçados</option><option value="v">Maior valor</option><option value="q">Mais unidades</option><option value="vend">Mais vendidos no CRM</option></select>
+        </div>
+        <div class="tbl-wrap"><table class="t" id="oTabela"></table></div>
+      </div>
+    </div>
+    <div id="prodCRM">
     <div class="kpis" id="pKpis"></div>
     <div class="row2">
       <div class="panel"><div class="panel-t">❌ Por que não fechou <small>vendas perdidas no período</small></div><div id="pMotivos"></div></div>
@@ -412,6 +430,7 @@ table.t td .mb>i{display:block;height:100%}
         <select id="pOrd" onchange="renderProd()"><option value="leads">Mais cotados</option><option value="vendas">Mais vendidos</option><option value="perdas">Mais perdidos</option><option value="conv">Maior conversão</option><option value="abertos">Mais em negociação</option></select>
       </div>
       <div class="tbl-wrap"><table class="t click" id="pTabela"></table></div>
+    </div>
     </div>
   </div></div>
 
@@ -485,7 +504,7 @@ var STAGES = [
   {k:'Perdido',           ic:'❌', c:'#dc2626'}
 ];
 var OPEN = ['Novo lead','Em atendimento','Orçamento enviado','Negociação'];
-var ORIGENS = ['Meta Ads','Indicação','Loja','Prospecção ativa','Site','Outro'];
+var ORIGENS = ['Meta Ads','Landing page','Indicação','Loja','Prospecção ativa','Site','Outro'];
 var TIPOS = ['Restaurante','Lanchonete','Padaria','Açougue','Mercado','Pizzaria','Hotel','Bar','Sorveteria','Outro'];
 var HORAS_EXCLUIR = 24; // vendedor pode apagar o próprio lead até 24h depois de criar
 var PAGAMENTOS = ['À vista / PIX','Cartão 6x','Cartão 12x','Cartão 21x','Boleto','A definir'];
@@ -634,12 +653,18 @@ function enterApp(){
   var d=new Date();$('dMes').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
   reload();
 }
-function reload(){
-  $('board').innerHTML='<div class="empty" style="padding:30px">Carregando…</div>';
+// atualiza sozinho a cada 3 min (leads da landing page aparecem sem precisar clicar em 🔄)
+setInterval(function(){if(S.user&&!document.hidden&&!$('modalRoot').innerHTML&&remote())reload(true);},180000);
+function reload(silencioso){
+  if(!silencioso)$('board').innerHTML='<div class="empty" style="padding:30px">Carregando…</div>';
+  var antes=S.leads.length;
   api('load').then(function(r){
-    if(!r.ok){$('board').innerHTML='<div class="empty c-red" style="padding:30px">'+esc(r.error)+'</div>';return;}
-    S.leads=(r.leads||[]).map(normalizeLead);S.movs=r.movs||[];S.contatos=r.contatos||[];renderMetaDia();
+    if(!r.ok){if(!silencioso)$('board').innerHTML='<div class="empty c-red" style="padding:30px">'+esc(r.error)+'</div>';return;}
+    if(silencioso&&$('modalRoot').innerHTML)return;   // não atrapalha quem está editando
+    S.leads=(r.leads||[]).map(normalizeLead);
+    if(silencioso&&S.leads.length>antes)toast('🆕 '+(S.leads.length-antes)+' lead(s) novo(s) chegaram');S.movs=r.movs||[];S.contatos=r.contatos||[];renderMetaDia();
     fillVendSelects();renderBoard();if(S.view==='dash')renderDash();
+    S.orc=null;if(S.view==='prod')renderProd();
   });
   if(!S.produtos.length)setProdutos(PRODUTOS_BASE);
   if(remote()&&!S.prodPlanilha){
@@ -1067,6 +1092,7 @@ function openLead(id){
   var wa=waLink(l['Celular']);
   modal('<h3>'+stage(st).ic+' '+esc(l['Nome Cliente']||'Lead')+'</h3>'
     +'<div class="sub">Criado em '+d8(l['Criado em'])+' · '+esc(l['Vendedor'])+(!isGestao()&&!podeExcluir(l)?' · <span title="Depois de '+HORAS_EXCLUIR+'h só a Gestão pode apagar">🔒 exclusão só pela Gestão</span>':'')+(wa?' · <a href="'+wa+'" target="_blank" style="color:var(--green);font-weight:700">💬 Abrir WhatsApp</a>':'')+'</div>'
+    +(l['Campanha']?'<div class="pp-hint" style="margin:-8px 0 12px">📣 Campanha: '+esc(l['Campanha'])+'</div>':'')
     +'<div class="f"><label>Etapa</label>'+stHtml+'</div>'
     +'<div class="grid2">'
     +'<div class="f"><label>📅 Próximo contato</label><input type="date" id="eProx" value="'+esc(String(l['Próximo Contato']||'').slice(0,10))+'"></div>'
@@ -1191,7 +1217,7 @@ function funilSVG(ate,perdeu){
 
 // faturamento acumulado do mês × ritmo da meta (uma escala só, em R$)
 function cumSVG(cum,meta,diaAte,diasMes){
-  var el=$('dCum'),cw=el.clientWidth||560,W=Math.max(320,Math.min(640,cw)),H=250,L=64,R=cw<480?14:86,T=14,B=26;
+  var el=$('dCum'),cw=el.clientWidth||560,W=Math.max(320,cw),H=250,L=64,R=cw<480?14:86,T=14,B=26;
   var maxV=niceMax(Math.max(meta,cum[cum.length-1]||0)*1.05),pw=W-L-R,ph=H-T-B;
   function X(d){return L+(d-1)/(diasMes-1)*pw;} function Y(v){return T+ph-(v/maxV)*ph;}
   var g='';
@@ -1229,15 +1255,15 @@ function cumHover(){
   hit.addEventListener('mouseleave',function(){ln.setAttribute('opacity','0');dt.setAttribute('opacity','0');t.style.display='none';});
 }
 // barras verticais (vendas por semana)
-function colSVG(lbls,vals,tips){
-  var el=$('dWeeks'),cw=el.clientWidth||520,W=Math.max(300,Math.min(620,cw)),H=210,L=60,R=8,T=22,B=24,pw=W-L-R,ph=H-T-B;
-  var mx=niceMax(Math.max.apply(null,vals.concat([1]))),n=vals.length,slot=pw/n,bw=Math.min(56,slot*0.62),g='';
+function colSVG(lbls,vals,tips,elId,fmt){
+  var el=$(elId||'dWeeks'),cw=el.clientWidth||520,W=Math.max(300,cw),H=210,L=60,R=8,T=22,B=24,pw=W-L-R,ph=H-T-B;
+  var mx=fmt?Math.max(4,Math.ceil(Math.max.apply(null,vals.concat([1]))/4)*4):niceMax(Math.max.apply(null,vals.concat([1]))),n=vals.length,slot=pw/n,bw=Math.min(56,slot*0.62),g='';
   function Y(v){return T+ph-(v/mx)*ph;}
-  for(var k=0;k<=4;k++){var v=mx*k/4,yy=Y(v);g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'" stroke="'+VZ.grid+'"/><text x="'+(L-8)+'" y="'+(yy+4)+'" text-anchor="end" class="ax">'+(v?R$k(v).replace('R$ ',''):'0')+'</text>';}
+  for(var k=0;k<=4;k++){var v=mx*k/4,yy=Y(v);g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'" stroke="'+VZ.grid+'"/><text x="'+(L-8)+'" y="'+(yy+4)+'" text-anchor="end" class="ax">'+(v?(fmt?fmt(v):R$k(v).replace('R$ ','')):'0')+'</text>';}
   vals.forEach(function(v,i){var x=L+slot*i+(slot-bw)/2,y=Y(v),h=T+ph-y,r=Math.min(4,h);
     g+='<g class="col"'+tipAttr(tips[i])+'><rect x="'+(L+slot*i)+'" y="'+T+'" width="'+slot+'" height="'+ph+'" fill="transparent"/>'
       +(v?'<path d="M'+x+','+(T+ph)+' L'+x+','+(y+r)+' Q'+x+','+y+' '+(x+r)+','+y+' L'+(x+bw-r)+','+y+' Q'+(x+bw)+','+y+' '+(x+bw)+','+(y+r)+' L'+(x+bw)+','+(T+ph)+' Z" fill="'+VZ.s1+'"/>'
-        +'<text x="'+(x+bw/2)+'" y="'+(y-6)+'" text-anchor="middle" class="ax lbl">'+R$k(v).replace('R$ ','')+'</text>':'')
+        +'<text x="'+(x+bw/2)+'" y="'+(y-6)+'" text-anchor="middle" class="ax lbl">'+(fmt?fmt(v):R$k(v).replace('R$ ',''))+'</text>':'')
       +'<text x="'+(x+bw/2)+'" y="'+(H-6)+'" text-anchor="middle" class="ax">'+lbls[i]+'</text></g>';});
   return '<svg viewBox="0 0 '+W+' '+H+'" class="cum-svg" role="img" aria-label="Vendas por semana">'+g+'</svg>';
 }
@@ -1280,7 +1306,49 @@ function prodDados(){
   return {arr:arr,motTot:motTot,perdidos:perdidos,leads:leadsP};
 }
 function topMotivo(x){return x.motTop?esc(x.motTop)+(x.perdas>1?' <span class="c-muted">('+x.mot[x.motTop]+'/'+x.perdas+')</span>':''):'—';}
+var FONTE='crm';
+function setFonte(f){FONTE=f;document.querySelectorAll('#pFonte button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-f')===f);});
+  $('prodOrc').classList.toggle('hidden',f!=='orc');$('prodCRM').classList.toggle('hidden',f!=='crm');$('pVend').classList.toggle('hidden',f!=='crm'||!isGestao());
+  if(f==='orc'){if(S.orc)renderOrc();else carregarOrc();}else renderProd();}
+function carregarOrc(){
+  if(!remote()){$('oKpis').innerHTML='<div class="empty">Disponível quando o CRM está ligado à planilha.</div>';return;}
+  $('oKpis').innerHTML='<div class="empty">Carregando orçamentos…</div>';
+  api('orcamentos').then(function(r){if(!r.ok){$('oKpis').innerHTML='<div class="empty c-red">'+esc(r.error||'Erro')+'</div>';return;}
+    S.orc=(r.orcamentos||[]).map(function(x){return {data:x[0],id:x[1],tipo:x[2],prod:x[3],q:+x[4]||1,v:+x[5]||0};});renderOrc();});
+}
+function renderOrc(){
+  if(!S.orc)return carregarOrc();
+  var P=prodPeriodo(),ls=S.orc.filter(function(o){var d=new Date(o.data);return d>=P.ini&&d<P.fim;});
+  var mapa={},ids={},porDia={};
+  ls.forEach(function(o){ids[o.id]=(ids[o.id]||0)+o.v;var k=normTxt(o.prod);var x=mapa[k]=mapa[k]||{k:k,d:o.prod,ids:{},q:0,v:0,ult:''};x.ids[o.id]=1;x.q+=o.q;x.v+=o.v;if(o.data>x.ult)x.ult=o.data;
+    var dia=String(o.data).slice(0,10);porDia[dia]=porDia[dia]||{};porDia[dia][o.id]=1;});
+  // vendidos no CRM (leads fechados no período com o mesmo produto)
+  var vend={};S.leads.forEach(function(l){if(l['Status']!=='Fechado')return;var d=new Date(l['Data Encerramento']);if(!(d>=P.ini&&d<P.fim))return;parseItens(l['Produto']).forEach(function(it){var k=normTxt(it.d);vend[k]=(vend[k]||0)+it.q;});});
+  var arr=Object.keys(mapa).map(function(k){var x=mapa[k];x.n=Object.keys(x.ids).length;x.vend=vend[k]||0;return x;});
+  var nOrc=Object.keys(ids).length,tot=Object.keys(ids).reduce(function(a,k){return a+ids[k];},0);
+  var top=arr.slice().sort(function(a,b){return b.n-a.n||b.v-a.v;});
+  function kpi(ic,cor,lab,val,sub){return '<div class="kpi k2" style="--k:'+cor+'"><div class="k-ic">'+ic+'</div><div class="kpi-l">'+lab+'</div><div class="kpi-v">'+val+'</div><div class="kpi-s">'+sub+'</div></div>';}
+  $('oKpis').innerHTML=nOrc?kpi('🧾','#2563eb','Orçamentos enviados','<span class="c-blue">'+nOrc+'</span>',(ls.length/nOrc).toFixed(1)+' produtos por orçamento')
+    +kpi('💰','#15803d','Valor total orçado',R$k(tot),'ticket médio '+R$k(tot/nOrc))
+    +kpi('📦','#6d28d9','Produtos diferentes','<span style="color:var(--purple)">'+arr.length+'</span>','orçados no período')
+    +kpi('🏆','#c26a05','Mais orçado','<span style="font-size:13px;line-height:1.3;font-family:var(--sans)">'+esc(top[0].d)+'</span>',top[0].n+' orçamentos')
+    :'<div class="empty" style="grid-column:1/-1">Nenhum orçamento registrado no período. Os orçamentos entram aqui quando o vendedor copia a mensagem do WhatsApp ou imprime no simulador.</div>';
+  $('oTop').innerHTML=rankBars(top.slice(0,10).map(function(x){return {l:x.d,v:x.n,t:x.q+' un',tip:'<b>'+esc(x.d)+'</b><br>'+x.n+' orçamentos · '+x.q+' unidades<br>Valor orçado '+R$(x.v)+(x.vend?'<br>'+x.vend+' vendidos no CRM':'')};}),VZ.s1,'Nenhum produto orçado no período.');
+  var porV=arr.slice().sort(function(a,b){return b.v-a.v;}).slice(0,10);
+  $('oValor').innerHTML=porV.length?rankBars(porV.map(function(x){return {l:x.d,v:Math.round(x.v/1000),t:'<b>'+R$k(x.v)+'</b>',tip:'<b>'+esc(x.d)+'</b><br>'+R$(x.v)+' em '+x.n+' orçamentos'};}),'#15803d','').replace(/<b>(\d+)<\/b><\/div><span class="rb-t">/g,'</div><span class="rb-t">'):'<div class="empty">—</div>';
+  var dias=Object.keys(porDia).sort().slice(-20);
+  if(dias.length){$('oDias').innerHTML=colSVG(dias.map(function(d){return d.slice(8,10)+'/'+d.slice(5,7);}),dias.map(function(d){return Object.keys(porDia[d]).length;}),dias.map(function(d){return '<b>'+d.split('-').reverse().join('/')+'</b><br>'+Object.keys(porDia[d]).length+' orçamentos enviados';}),'oDias',function(v){return String(Math.round(v));});
+    $('oDiasSub').textContent=dias.length>1?'últimos '+dias.length+' dias com orçamento':'1 dia com orçamento';}
+  else{$('oDias').innerHTML='<div class="empty">—</div>';$('oDiasSub').textContent='';}
+  var q=normTxt($('oBusca').value.trim()),o=$('oOrd').value,lst=arr.filter(function(x){return !q||x.k.indexOf(q)>=0;});
+  lst.sort({n:function(a,b){return b.n-a.n||b.v-a.v;},v:function(a,b){return b.v-a.v;},q:function(a,b){return b.q-a.q;},vend:function(a,b){return b.vend-a.vend||b.n-a.n;}}[o]);
+  var mx=lst.reduce(function(a,x){return Math.max(a,x.n);},1);
+  $('oTabela').innerHTML=lst.length?'<thead><tr><th>Produto</th><th>Orçamentos</th><th>Unidades</th><th>Valor orçado</th><th>Valor médio</th><th>Vendidos no CRM</th><th>Último orçamento</th></tr></thead><tbody>'
+    +lst.map(function(x){return '<tr><td style="white-space:normal;min-width:260px;max-width:400px">'+esc(x.d)+'</td><td><span class="mb"><i style="width:'+(x.n/mx*100)+'%;background:var(--blue)"></i></span>'+x.n+'</td><td>'+x.q+'</td><td class="c-green">'+R$k(x.v)+'</td><td>'+R$k(x.v/x.q)+'</td><td class="'+(x.vend?'c-green':'c-muted')+'">'+(x.vend||'—')+'</td><td>'+d8(x.ult)+'</td></tr>';}).join('')+'</tbody>'
+    :'<tr><td class="empty">Nenhum produto orçado no período.</td></tr>';
+}
 function renderProd(){
+  if(FONTE==='orc')return renderOrc();
   var D=prodDados(),arr=D.arr;S._prod=arr;
   var comProd=D.leads.filter(function(l){return parseItens(l['Produto']).length;}).length;
   var vend=arr.reduce(function(a,x){return a+x.vendas;},0),perd=arr.reduce(function(a,x){return a+x.perdas;},0);
