@@ -85,7 +85,7 @@ button{font-family:inherit}
 .card-top{display:flex;justify-content:space-between;gap:6px;align-items:flex-start}
 .card-name{font-size:13px;font-weight:800;line-height:1.25;word-break:break-word}
 .card-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--green);white-space:nowrap}
-.card-prod{font-size:11px;color:var(--text2);margin-top:3px}
+.card-prod{font-size:11px;color:var(--text2);margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
 .tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--bg2);color:var(--text2);border:1px solid var(--border)}
 .tag.red{background:var(--red-g);color:var(--red);border-color:rgba(220,38,38,.3)}
@@ -128,6 +128,19 @@ button{font-family:inherit}
 .pp-m{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:var(--text3);margin-top:2px}
 .pp-m b{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green)}
 .pp-none{padding:10px 11px;font-size:11px;color:var(--text3)}
+.pp-wrap{position:relative;display:flex;gap:6px}
+.pp-wrap input{flex:1}
+.pp-wrap .btn{padding:0 14px;font-size:16px}
+.itens{display:flex;flex-direction:column;gap:5px;margin-bottom:6px}
+.itens:empty{display:none}
+.item{display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid var(--border);border-radius:9px;padding:6px 8px}
+.qty{display:flex;align-items:center;border:1px solid var(--border);border-radius:7px;overflow:hidden;flex-shrink:0}
+.qty button{border:none;background:var(--bg2);width:26px;height:26px;font-size:14px;font-weight:800;cursor:pointer;color:var(--text2)}
+.qty button:hover{background:var(--blue-g);color:var(--blue)}
+.qty b{min-width:26px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px}
+.item-d{flex:1;font-size:12px;font-weight:700;line-height:1.3}
+.item-x{border:none;background:none;color:var(--red);font-size:13px;cursor:pointer;padding:4px}
+.g-fix{grid-template-columns:1fr 1fr!important}
 .pp-hint{font-size:10px;color:var(--text3);margin-top:4px}
 .vb-n{display:inline-block;background:var(--red);color:#fff;border-radius:9px;font-size:10px;padding:0 6px;margin-left:3px;line-height:16px}
 .fu{padding:14px 16px 40px;max-width:900px;margin:0 auto}
@@ -288,6 +301,7 @@ table.t td .mb>i{display:block;height:100%}
       <div class="panel"><div class="panel-t">📣 Resultado por origem <small>leads do mês</small></div><div class="tbl-wrap"><table class="t" id="dOrigem"></table></div></div>
       <div class="panel"><div class="panel-t">❌ Motivos de perda <small>no mês</small></div><div class="tbl-wrap"><table class="t" id="dPerdas"></table></div></div>
     </div>
+    <div class="panel"><div class="panel-t">💳 Forma de pagamento e desconto <small>vendas fechadas no mês</small></div><div class="tbl-wrap"><table class="t" id="dPag"></table></div></div>
     <div class="panel"><div class="panel-t">🚨 Precisa de atenção agora <small>sem contato há +24h e follow-ups atrasados</small></div><div class="alert-list" id="dAlertas"></div></div>
   </div></div>
 </div>
@@ -325,6 +339,8 @@ var STAGES = [
 var OPEN = ['Novo lead','Em atendimento','Orçamento enviado','Negociação'];
 var ORIGENS = ['Meta Ads','Indicação','Loja','Prospecção ativa','Site','Outro'];
 var TIPOS = ['Restaurante','Lanchonete','Padaria','Açougue','Mercado','Pizzaria','Hotel','Bar','Sorveteria','Outro'];
+var HORAS_EXCLUIR = 24; // vendedor pode apagar o próprio lead até 24h depois de criar
+var PAGAMENTOS = ['À vista / PIX','Cartão 6x','Cartão 12x','Cartão 21x','Boleto','A definir'];
 var MOTIVOS = ['Preço','Comprou no concorrente','Desistiu da compra','Sem resposta','Sem crédito / pagamento','Outro'];
 
 // Base de produtos (relatório Microvix, só código/descrição/referência). Se a aba "Produtos" da planilha
@@ -357,6 +373,7 @@ function userInfo(n){return S.users.filter(function(u){return u.nome===n;})[0]||
 function metaMes(n){var m=num(userInfo(n).metaMes);return m||CONFIG.META_MENSAL;}
 function metaDia(n){var m=num(userInfo(n).metaDia);return m||CONFIG.META_CONTATOS_DIA;}
 function ativos(){return S.users.filter(function(u){return u.tipo==='vendedor';}).map(function(u){return u.nome;});}
+function podeExcluir(l){return isGestao()||(l['Vendedor']===S.user.nome&&hoursSince(l['Criado em'])<HORAS_EXCLUIR);}
 function isGestao(){return S.user&&S.user.tipo==='gestao';}
 function toast(t){var e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(function(){e.remove();},2200);}
 function makeId(){return 'LD-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,6).toUpperCase();}
@@ -374,7 +391,7 @@ function normalizeLead(l){
   o['Etapa Desde']=o['Etapa Desde']||o['Atualizado em']||o['Criado em'];
   o['Valor Estimado']=num(o['Valor Estimado']);
   o['Valor Fechado']=num(o['Valor Fechado']);
-  o['Origem']=o['Origem']||'';
+  o['Origem']=o['Origem']||'';o['Forma Pagamento']=o['Forma Pagamento']||'';o['Desconto %']=num(o['Desconto %']);
   if((o['Status']==='Fechado'||o['Status']==='Perdido')&&!o['Data Encerramento'])o['Data Encerramento']=o['Atualizado em']||o['Criado em'];
   if(o['Status']==='Fechado'&&!o['Valor Fechado'])o['Valor Fechado']=o['Valor Estimado'];
   return o;
@@ -423,8 +440,12 @@ function localApi(action,d){
     return {ok:true,lead:l};
   }
   if(action==='delete'){
-    if(me.tipo!=='gestao')return {ok:false,error:'Só a Gestão pode excluir'};
-    writeLS(LS_LEADS,leads.filter(function(x){return x['ID']!==d.id;}));return {ok:true};
+    var alvo=leads.filter(function(x){return x['ID']===d.id;})[0];
+    if(alvo&&!podeExcluir(alvo))return {ok:false,error:'Só dá para apagar até '+HORAS_EXCLUIR+'h depois de criar. Peça para a Gestão.'};
+    writeLS(LS_LEADS,leads.filter(function(x){return x['ID']!==d.id;}));
+    writeLS(LS_CONT,conts.filter(function(c){return c['ID Lead']!==d.id;}));
+    writeLS(LS_MOVS,movs.filter(function(m){return m['ID Lead']!==d.id;}));
+    return {ok:true};
   }
   if(action==='restore'){
     writeLS(LS_LEADS,d.leads.map(normalizeLead));writeLS(LS_MOVS,d.movs||[]);return {ok:true};
@@ -502,19 +523,18 @@ function setView(v){
 // ================== BUSCA DE PRODUTOS ==================
 function setProdutos(arr){S.produtos=(arr||[]).map(function(x){return {cod:String(x[0]||''),desc:String(x[1]||''),ref:String(x[2]||''),k:normTxt(x[0]+' '+x[1]+' '+x[2])};});}
 function normTxt(t){return String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();}
-// liga a busca num campo de produto (só a descrição — o valor é digitado pelo vendedor)
-function prodPicker(inputId,valorId){
+// busca de produto num campo; ao escolher (ou apertar Enter com texto livre) chama onPick(descrição)
+function prodPicker(inputId,onPick){
   var inp=$(inputId);if(!inp)return;
-  var box=document.createElement('div');box.className='pp-box hidden';inp.parentNode.appendChild(box);inp.parentNode.style.position='relative';
+  var box=document.createElement('div');box.className='pp-box hidden';inp.parentNode.appendChild(box);
   inp.setAttribute('autocomplete','off');
   var sel=-1,res=[];
   function draw(){
-    box.innerHTML=res.length?res.map(function(p,i){return '<div class="pp-it'+(i===sel?' on':'')+'" data-i="'+i+'"><div class="pp-d">'+esc(p.desc)+'</div><div class="pp-m"><span>cód. '+esc(p.cod)+(p.ref?' · ref. '+esc(p.ref):'')+'</span></div></div>';}).join(''):'<div class="pp-none">Nenhum produto encontrado — pode deixar o texto digitado.</div>';
+    box.innerHTML=res.length?res.map(function(p,i){return '<div class="pp-it'+(i===sel?' on':'')+'" data-i="'+i+'"><div class="pp-d">'+esc(p.desc)+'</div><div class="pp-m"><span>cód. '+esc(p.cod)+(p.ref?' · ref. '+esc(p.ref):'')+'</span></div></div>';}).join(''):'<div class="pp-none">Nenhum produto encontrado — aperte <b>Enter</b> ou <b>+</b> para adicionar como está escrito.</div>';
     box.classList.remove('hidden');
   }
-  function termo(){var v=inp.value;var k=v.lastIndexOf('+');return (k>=0?v.slice(k+1):v).trim();}
   function buscar(){
-    var q=normTxt(termo());if(!S.produtos.length||q.length<2){box.classList.add('hidden');return;}
+    var q=normTxt(inp.value.trim());if(!S.produtos.length||q.length<2){box.classList.add('hidden');res=[];return;}
     var tk=q.split(/\s+/).filter(Boolean);
     res=S.produtos.filter(function(p){for(var i=0;i<tk.length;i++)if(p.k.indexOf(tk[i])<0)return false;return true;});
     // relevância: palavra inteira na descrição vale mais; começar pelo 1º termo vale mais ainda
@@ -524,24 +544,51 @@ function prodPicker(inputId,valorId){
     res.sort(function(a,b){return b._sc-a._sc||a.desc.length-b.desc.length;});
     res=res.slice(0,30);sel=-1;draw();
   }
-  function escolher(p){
-    var v=inp.value,k=v.lastIndexOf('+');var antes=k>=0?v.slice(0,k+1)+' ':'';
-    inp.value=antes+p.desc;
-    box.classList.add('hidden');inp.focus();
-  }
+  function escolher(desc){if(!desc)return;onPick(desc);inp.value='';res=[];box.classList.add('hidden');inp.focus();}
+  inp._addLivre=function(){escolher(inp.value.trim());};
   inp.addEventListener('input',buscar);
   inp.addEventListener('focus',buscar);
   inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){e.preventDefault();if(sel>=0&&res[sel])escolher(res[sel].desc);else escolher(inp.value.trim());return;}
     if(box.classList.contains('hidden'))return;
     if(e.key==='ArrowDown'){sel=Math.min(res.length-1,sel+1);draw();e.preventDefault();}
     else if(e.key==='ArrowUp'){sel=Math.max(0,sel-1);draw();e.preventDefault();}
-    else if(e.key==='Enter'&&sel>=0){escolher(res[sel]);e.preventDefault();}
     else if(e.key==='Escape'){box.classList.add('hidden');}
   });
-  box.addEventListener('mousedown',function(e){var it=e.target.closest('.pp-it');if(it){e.preventDefault();escolher(res[+it.getAttribute('data-i')]);}});
+  box.addEventListener('mousedown',function(e){var it=e.target.closest('.pp-it');if(it){e.preventDefault();escolher(res[+it.getAttribute('data-i')].desc);}});
   inp.addEventListener('blur',function(){setTimeout(function(){box.classList.add('hidden');},150);});
 }
-function prodHint(){return S.produtos.length?'Digite parte do nome ou o código — '+S.produtos.length.toLocaleString('pt-BR')+' produtos cadastrados. Para mais de um, separe com +':'';}
+
+// ---- lista de produtos do lead (vários itens com quantidade) ----
+var ITENS={};
+function parseItens(t){return String(t||'').split(/\s*\|\s*|\s+\+\s+/).map(function(x){x=x.trim();if(!x)return null;var m=x.match(/^(\d+)\s*x\s+(.+)$/i);return m?{q:+m[1],d:m[2].trim()}:{q:1,d:x};}).filter(Boolean);}
+function itensHtml(id,label,inicial){
+  ITENS[id]=parseItens(inicial);
+  return '<div class="f"><label>'+label+'</label><div class="itens" id="'+id+'_lista"></div>'
+    +'<div class="pp-wrap"><input id="'+id+'_q" placeholder="🔍 Buscar produto pelo nome ou código…"><button type="button" class="btn" title="Adicionar o que foi digitado" onclick="$(\''+id+'_q\')._addLivre()">+</button></div>'
+    +'<div class="pp-hint">Escolha na lista para adicionar. Dá para colocar vários produtos e ajustar a quantidade.</div></div>';
+}
+function itensInit(id){
+  renderItens(id);
+  prodPicker(id+'_q',function(d){var it=ITENS[id];var ex=it.filter(function(x){return normTxt(x.d)===normTxt(d);})[0];if(ex)ex.q++;else it.push({q:1,d:d});renderItens(id);});
+}
+function renderItens(id){
+  var el=$(id+'_lista');if(!el)return;var it=ITENS[id]||[];
+  el.innerHTML=it.map(function(x,i){return '<div class="item"><div class="qty"><button type="button" onclick="qtyItem(\''+id+'\','+i+',-1)">−</button><b>'+x.q+'</b><button type="button" onclick="qtyItem(\''+id+'\','+i+',1)">+</button></div><span class="item-d">'+esc(x.d)+'</span><button type="button" class="item-x" title="Remover" onclick="rmItem(\''+id+'\','+i+')">✕</button></div>';}).join('');
+}
+function qtyItem(id,i,d){var x=ITENS[id][i];x.q=Math.max(1,x.q+d);renderItens(id);}
+function rmItem(id,i){ITENS[id].splice(i,1);renderItens(id);}
+// texto final do campo "Produto" (inclui o que ficou digitado e não foi adicionado)
+function itensFinal(id){
+  var q=$(id+'_q');if(q&&q.value.trim()){ITENS[id].push({q:1,d:q.value.trim()});q.value='';}
+  return (ITENS[id]||[]).map(function(x){return (x.q>1?x.q+'x ':'')+x.d;}).join(' | ');
+}
+
+// ---- valor com desconto ----
+function valorLiq(l){var v=num(l['Valor Estimado']),d=num(l['Desconto %']);return v*(1-Math.min(100,Math.max(0,d))/100);}
+function pctFmt(d){d=num(d);return (Math.round(d*10)/10).toLocaleString('pt-BR')+'%';}
+function descHint(vId,dId,hId){var v=num($(vId).value),d=num($(dId).value),h=$(hId);if(!h)return;h.textContent=v&&d?'Com '+pctFmt(d)+' de desconto: '+R$(v*(1-Math.min(100,d)/100)):'';}
+function pctIn(el){var v=el.value.replace(/[^\d,\.]/g,'').replace('.',',');var p=v.split(',');if(p.length>2)v=p[0]+','+p.slice(1).join('');if(num(v)>100)v='100';el.value=v;}
 
 // ================== META DIÁRIA DE CONTATOS ==================
 function contatoDe(l,tipo){return {'Data':nowISO(),'Dia':todayStr(),'ID Lead':l['ID'],'Cliente':l['Nome Cliente'],'Vendedor':l['Vendedor'],'Tipo':tipo,'Por':S.user.nome};}
@@ -690,6 +737,8 @@ function cardHtml(l){
   else if(l['Próximo Contato']&&OPEN.indexOf(l['Status'])>=0)tags+='<span class="tag blue">📅 '+dBR(l['Próximo Contato'])+'</span>';
   if(OPEN.indexOf(l['Status'])>=0){var ds=daysSince(l['Etapa Desde']);tags+='<span class="tag'+(ds>=7?' amber':'')+'">⏱ '+(ds===0?'entrou hoje':ds+'d na etapa')+'</span>';}
   if(l['Status']==='Perdido'&&l['Motivo Perda'])tags+='<span class="tag red">'+esc(l['Motivo Perda'])+'</span>';
+  if(l['Forma Pagamento'])tags+='<span class="tag">💳 '+esc(l['Forma Pagamento'])+'</span>';
+  if(num(l['Desconto %']))tags+='<span class="tag amber">−'+pctFmt(l['Desconto %'])+'</span>';
   if(l['Origem'])tags+='<span class="tag">'+esc(l['Origem'])+'</span>';
   var val=l['Status']==='Fechado'?(num(l['Valor Fechado'])||num(l['Valor Estimado'])):num(l['Valor Estimado']);
   var wa=waLink(l['Celular']);
@@ -755,12 +804,15 @@ function openNew(){
   modal('<h3>🆕 Novo lead</h3><div class="sub">Só o básico. Os outros dados você completa depois no cartão.</div>'
     +'<div class="f"><label>Nome do cliente *</label><input id="nNome" placeholder="Ex: João — Restaurante Sabor" autocomplete="off"></div>'
     +'<div class="f"><label>WhatsApp *</label><input id="nCel" class="mono" type="tel" inputmode="numeric" placeholder="(24) 99999-0000" oninput="maskPhone(this)"></div>'
-    +'<div class="f"><label>O que ele procura?</label><input id="nProd" placeholder="Ex: freezer 560, balança, fogão industrial">'+(S.produtos.length?'<div class="pp-hint">'+prodHint()+'</div>':'')+'</div>'
-    +'<div class="f"><label>Valor estimado (R$) — opcional</label><input id="nValor" class="mono" inputmode="numeric" placeholder="0,00" oninput="maskMoney(this)"></div>'
+    +itensHtml('nProd','O que ele procura?','')
+    +'<div class="grid2 g-fix"><div class="f"><label>Valor estimado (R$)</label><input id="nValor" class="mono" inputmode="numeric" placeholder="0,00" oninput="maskMoney(this);descHint(\'nValor\',\'nDesc\',\'nDescH\')"></div>'
+    +'<div class="f"><label>Possível desconto (%)</label><input id="nDesc" class="mono" inputmode="decimal" placeholder="0" oninput="pctIn(this);descHint(\'nValor\',\'nDesc\',\'nDescH\')"></div></div>'
+    +'<div class="pp-hint c-green" id="nDescH" style="margin:-6px 0 10px;font-weight:700"></div>'
+    +'<div class="f"><label>Possível forma de pagamento</label>'+chipsHtml('nPag',PAGAMENTOS,'')+'</div>'
     +'<div class="f"><label>De onde veio?</label>'+chipsHtml('nOrigem',ORIGENS,'Meta Ads')+'</div>'
     +(isGestao()?'<div class="f"><label>Vendedor responsável</label>'+vendSelectHtml('nVend','')+'</div>':'')
     +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveNew()">Criar lead</button></div>');
-  prodPicker('nProd','nValor');
+  itensInit('nProd');
   setTimeout(function(){var e=$('nNome');if(e){e.focus();}},50);
 }
 function saveNew(){
@@ -770,8 +822,8 @@ function saveNew(){
   var dup=S.leads.filter(function(l){return String(l['Celular']).replace(/\D/g,'')===cel.replace(/\D/g,'')&&OPEN.indexOf(l['Status'])>=0;})[0];
   if(dup&&!confirm('Já existe um lead aberto com esse WhatsApp: '+dup['Nome Cliente']+' ('+dup['Vendedor']+'). Criar mesmo assim?'))return;
   var l={'ID':makeId(),'Criado em':nowISO(),'Atualizado em':nowISO(),'Vendedor':isGestao()?$('nVend').value:S.user.nome,
-    'Nome Cliente':nome,'Celular':cel,'Cidade':'','Tipo de Negócio':'','Origem':chipVal('nOrigem'),'Produto':$('nProd').value.trim(),
-    'Valor Estimado':num($('nValor').value),'Status':'Novo lead','Etapa Desde':nowISO(),'Próximo Contato':'','Próxima Ação':'',
+    'Nome Cliente':nome,'Celular':cel,'Cidade':'','Tipo de Negócio':'','Origem':chipVal('nOrigem'),'Produto':itensFinal('nProd'),
+    'Valor Estimado':num($('nValor').value),'Desconto %':num($('nDesc').value),'Forma Pagamento':chipVal('nPag'),'Status':'Novo lead','Etapa Desde':nowISO(),'Próximo Contato':'','Próxima Ação':'',
     'Valor Fechado':0,'Data Encerramento':'','Motivo Perda':'','Observações':''};
   closeModal();
   saveLead(l,{'Data':nowISO(),'ID Lead':l['ID'],'Cliente':nome,'Vendedor':l['Vendedor'],'De':'','Para':'Novo lead','Por':S.user.nome},contatoDe(l,'Novo lead'))
@@ -781,12 +833,13 @@ function saveNew(){
 // --- FECHAR / PERDER ---
 function askClose(l){
   modal('<h3>✅ Fechar venda</h3><div class="sub">'+esc(l['Nome Cliente'])+'</div>'
-    +'<div class="f"><label>Valor final da venda (R$) *</label><input id="cValor" class="mono" inputmode="numeric" value="'+moneyIn(l['Valor Estimado'])+'" oninput="maskMoney(this)"></div>'
-    +'<div class="f"><label>O que foi vendido</label><input id="cProd" value="'+esc(l['Produto'])+'"></div>'
+    +'<div class="f"><label>Valor final da venda (R$) *</label><input id="cValor" class="mono" inputmode="numeric" value="'+moneyIn(valorLiq(l))+'" oninput="maskMoney(this)">'+(num(l['Desconto %'])?'<div class="pp-hint">Valor estimado '+R$(num(l['Valor Estimado']))+' com '+pctFmt(l['Desconto %'])+' de desconto. Ajuste se fechou diferente.</div>':'')+'</div>'
+    +'<div class="f"><label>Forma de pagamento</label>'+chipsHtml('cPag',PAGAMENTOS.filter(function(x){return x!=='A definir';}),l['Forma Pagamento'])+'</div>'
+    +itensHtml('cProd','O que foi vendido',l['Produto'])
     +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-green" id="cOk">Confirmar venda 🎉</button></div>');
   $('cOk').onclick=function(){var v=num($('cValor').value);if(!v){$('cValor').focus();return toast('Informe o valor da venda');}
-    var pr=$('cProd').value.trim();closeModal();commitMove(l,'Fechado',{'Valor Fechado':v,'Produto':pr});};
-  prodPicker('cProd',null);
+    var pr=itensFinal('cProd'),fp=chipVal('cPag')||l['Forma Pagamento'];closeModal();commitMove(l,'Fechado',{'Valor Fechado':v,'Produto':pr,'Forma Pagamento':fp});};
+  itensInit('cProd');
   setTimeout(function(){var e=$('cValor');if(e){e.focus();e.select();}},50);
 }
 function askLoss(l){
@@ -813,7 +866,7 @@ function openLead(id){
   var stHtml='<div class="stage-pick" id="eStage">'+STAGES.map(function(s){return '<button type="button" style="--c:'+s.c+'" class="'+(s.k===st?'on':'')+'" data-k="'+s.k+'" onclick="pickStage(this)">'+s.ic+' '+s.k+'</button>';}).join('')+'</div>';
   var wa=waLink(l['Celular']);
   modal('<h3>'+stage(st).ic+' '+esc(l['Nome Cliente']||'Lead')+'</h3>'
-    +'<div class="sub">Criado em '+d8(l['Criado em'])+' · '+esc(l['Vendedor'])+(wa?' · <a href="'+wa+'" target="_blank" style="color:var(--green);font-weight:700">💬 Abrir WhatsApp</a>':'')+'</div>'
+    +'<div class="sub">Criado em '+d8(l['Criado em'])+' · '+esc(l['Vendedor'])+(!isGestao()&&!podeExcluir(l)?' · <span title="Depois de '+HORAS_EXCLUIR+'h só a Gestão pode apagar">🔒 exclusão só pela Gestão</span>':'')+(wa?' · <a href="'+wa+'" target="_blank" style="color:var(--green);font-weight:700">💬 Abrir WhatsApp</a>':'')+'</div>'
     +'<div class="f"><label>Etapa</label>'+stHtml+'</div>'
     +'<div class="grid2">'
     +'<div class="f"><label>📅 Próximo contato</label><input type="date" id="eProx" value="'+esc(String(l['Próximo Contato']||'').slice(0,10))+'"></div>'
@@ -824,8 +877,10 @@ function openLead(id){
     +'<div class="f"><label>WhatsApp</label><input id="eCel" class="mono" value="'+esc(l['Celular'])+'" oninput="maskPhone(this)"></div>'
     +'<div class="f"><label>Cidade</label><input id="eCid" value="'+esc(l['Cidade'])+'"></div>'
     +'<div class="f"><label>Tipo de negócio</label><select id="eTipo"><option value="">—</option>'+TIPOS.map(function(t){return '<option'+(t===l['Tipo de Negócio']?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
-    +'<div class="f"><label>Produto de interesse</label><input id="eProd" value="'+esc(l['Produto'])+'"></div>'
-    +'<div class="f"><label>Valor estimado (R$)</label><input id="eValor" class="mono" inputmode="numeric" value="'+moneyIn(l['Valor Estimado'])+'" oninput="maskMoney(this)"></div>'
+    +'</div>'+itensHtml('eProd','Produtos de interesse',l['Produto'])+'<div class="grid2">'
+    +'<div class="f"><label>Valor estimado (R$)</label><input id="eValor" class="mono" inputmode="numeric" value="'+moneyIn(l['Valor Estimado'])+'" oninput="maskMoney(this);descHint(\'eValor\',\'eDesc\',\'eDescH\')"></div>'
+    +'<div class="f"><label>Possível desconto (%)</label><input id="eDesc" class="mono" inputmode="decimal" value="'+(num(l['Desconto %'])?String(num(l['Desconto %'])).replace('.',','):'')+'" placeholder="0" oninput="pctIn(this);descHint(\'eValor\',\'eDesc\',\'eDescH\')"><div class="pp-hint c-green" id="eDescH" style="font-weight:700"></div></div>'
+    +'<div class="f"><label>Forma de pagamento</label><select id="ePag"><option value="">—</option>'+PAGAMENTOS.map(function(o){return '<option'+(o===l['Forma Pagamento']?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div>'
     +'<div class="f"><label>Origem</label><select id="eOrig"><option value="">—</option>'+ORIGENS.map(function(o){return '<option'+(o===l['Origem']?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div>'
     +(isGestao()?'<div class="f"><label>Vendedor</label>'+vendSelectHtml('eVend',l['Vendedor'])+'</div>':'')
     +(st==='Fechado'?'<div class="f"><label>Valor fechado (R$)</label><input id="eFech" class="mono" inputmode="numeric" value="'+moneyIn(l['Valor Fechado'])+'" oninput="maskMoney(this)"></div>':'')
@@ -835,9 +890,9 @@ function openLead(id){
     +'<div class="note-add"><input id="eNote" placeholder="Escreva o que aconteceu no contato…" onkeydown="if(event.key===\'Enter\')addNote(\''+esc(id)+'\')"><button class="btn btn-primary" onclick="addNote(\''+esc(id)+'\')">Anotar</button></div>'
     +'<div class="timeline" id="eNotes">'+notesHtml(l['Observações'])+'</div>'
     +'<div class="modal-actions">'
-    +(isGestao()?'<button class="btn btn-red" style="flex:0 0 auto" onclick="delLead(\''+esc(id)+'\')">🗑️</button>':'')
+    +(podeExcluir(l)?'<button class="btn btn-red" style="flex:0 0 auto" onclick="delLead(\''+esc(id)+'\')">🗑️ Excluir lead</button>':'')
     +'<button class="btn" onclick="closeModal()">Fechar</button><button class="btn btn-primary" onclick="saveDetail(\''+esc(id)+'\')">💾 Salvar</button></div>',true);
-  prodPicker('eProd','eValor');
+  itensInit('eProd');descHint('eValor','eDesc','eDescH');
 }
 function pickStage(b){document.querySelectorAll('#eStage button').forEach(function(x){x.classList.remove('on');});b.classList.add('on');}
 function addNote(id){
@@ -850,7 +905,7 @@ function saveDetail(id){
   var l=getLead(id);if(!l)return;
   var nome=$('eNome').value.trim();if(!nome)return toast('O nome não pode ficar vazio');
   var n=Object.assign({},l,{'Nome Cliente':nome,'Celular':$('eCel').value.trim(),'Cidade':$('eCid').value.trim(),
-    'Tipo de Negócio':$('eTipo').value,'Produto':$('eProd').value.trim(),'Valor Estimado':num($('eValor').value),'Origem':$('eOrig').value,
+    'Tipo de Negócio':$('eTipo').value,'Produto':itensFinal('eProd'),'Valor Estimado':num($('eValor').value),'Desconto %':num($('eDesc').value),'Forma Pagamento':$('ePag').value,'Origem':$('eOrig').value,
     'Próximo Contato':$('eProx').value,'Próxima Ação':$('eAcao').value.trim()});
   if(isGestao())n['Vendedor']=$('eVend').value;
   if($('eFech'))n['Valor Fechado']=num($('eFech').value);
@@ -866,9 +921,12 @@ function saveDetail(id){
   saveLead(n,null).then(function(ok){if(ok)toast('💾 Salvo');});
 }
 function delLead(id){
-  var l=getLead(id);if(!confirm('Excluir o lead "'+l['Nome Cliente']+'"? Isso não pode ser desfeito.'))return;
+  var l=getLead(id);if(!confirm('Apagar o lead "'+l['Nome Cliente']+'"?\n\nEle some do CRM e da planilha, junto com os contatos registrados nele. Isso não pode ser desfeito.'))return;
   closeModal();
-  api('delete',{id:id}).then(function(r){if(!r.ok)return alert(r.error);S.leads=S.leads.filter(function(x){return x['ID']!==id;});renderBoard();toast('🗑️ Lead excluído');});
+  api('delete',{id:id}).then(function(r){if(!r.ok)return alert(r.error);
+    S.leads=S.leads.filter(function(x){return x['ID']!==id;});
+    S.contatos=S.contatos.filter(function(c){return c['ID Lead']!==id;});S.movs=S.movs.filter(function(m){return m['ID Lead']!==id;});
+    renderBoard();renderMetaDia();if(S.view==='dash')renderDash();toast('🗑️ Lead apagado');});
 }
 
 // --- BACKUP (modo local) ---
@@ -1009,6 +1067,11 @@ function renderDash(){
   // perdas
   var mk=Object.keys(T.motivos).sort(function(a,b){return T.motivos[b]-T.motivos[a];});
   $('dPerdas').innerHTML=mk.length?'<thead><tr><th>Motivo</th><th>Qtd</th><th>%</th></tr></thead><tbody>'+mk.map(function(k){return '<tr><td>'+esc(k)+'</td><td>'+T.motivos[k]+'</td><td>'+(T.motivos[k]/T.perdas*100).toFixed(0)+'%</td></tr>';}).join('')+'</tbody>':'<tr><td class="empty">Nenhuma venda perdida neste mês. 👏</td></tr>';
+
+  // forma de pagamento
+  var pg={};base.forEach(function(l){if(l['Status']!=='Fechado'||!inM(l['Data Encerramento']))return;var k=l['Forma Pagamento']||'Não informada';pg[k]=pg[k]||{n:0,f:0,d:0,nd:0};pg[k].n++;pg[k].f+=num(l['Valor Fechado'])||num(l['Valor Estimado']);var dd=num(l['Desconto %']);if(!dd&&num(l['Valor Estimado'])&&num(l['Valor Fechado'])&&num(l['Valor Fechado'])<num(l['Valor Estimado']))dd=(1-num(l['Valor Fechado'])/num(l['Valor Estimado']))*100;pg[k].d+=dd;pg[k].nd++;});
+  var pk=Object.keys(pg).sort(function(a,b){return pg[b].f-pg[a].f;}),ptot=pk.reduce(function(a,k){return a+pg[k].f;},0);
+  $('dPag').innerHTML=pk.length?'<thead><tr><th>Forma</th><th>Vendas</th><th>Faturado</th><th>% do total</th><th>Desconto médio</th></tr></thead><tbody>'+pk.map(function(k){var x=pg[k];return '<tr><td>'+esc(k)+'</td><td>'+x.n+'</td><td class="c-green">'+R$k(x.f)+'</td><td>'+(ptot?(x.f/ptot*100).toFixed(0):0)+'%</td><td>'+(x.nd?pctFmt(x.d/x.nd):'—')+'</td></tr>';}).join('')+'</tbody>':'<tr><td class="empty">Nenhuma venda fechada neste mês.</td></tr>';
 
   // alertas
   var al=base.filter(function(l){var u=urgOf(l);return u==='semcontato'||u==='atrasado';});
