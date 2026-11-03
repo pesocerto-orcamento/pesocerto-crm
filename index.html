@@ -66,6 +66,7 @@ button{font-family:inherit}
 .chip.on{background:var(--text);color:#fff;border-color:var(--text)}
 .chip .n{display:inline-block;margin-left:4px;background:rgba(15,23,42,.08);border-radius:10px;padding:0 6px}
 .chip.on .n{background:rgba(255,255,255,.2)}
+.tag.purple{border-color:#7c3aed;color:#6d28d9;background:#f5f3ff}
 .chip.red .n{background:var(--red);color:#fff}
 
 /* KANBAN */
@@ -553,6 +554,7 @@ table.t td .mb>i{display:block;height:100%}
     <div class="panel"><div class="panel-t">📦 Produtos mais cotados <small id="dProdSub"></small></div><div class="tbl-wrap"><table class="t" id="dProd"></table></div></div>
     <div class="panel"><div class="panel-t">📣 Origem dos leads em detalhe <small id="dOrgSub"></small></div><div class="tbl-wrap"><table class="t" id="dOrgTab"></table></div></div>
     <div class="panel"><div class="panel-t">💳 Forma de pagamento e desconto <small>vendas fechadas no mês</small></div><div class="tbl-wrap"><table class="t" id="dPag"></table></div><div class="pp-hint" id="dPagNota" style="margin-top:8px"></div></div>
+    <div class="panel"><div class="panel-t">🔁 Sequência de contatos — Em atendimento <small>toques nos dias 3, 6 e 10 · quem está em dia e qual toque faz o lead avançar</small></div><div class="tbl-wrap"><table class="t" id="dCad"></table></div><div class="tbl-wrap" style="margin-top:12px"><table class="t" id="dCadAv"></table></div><div class="pp-hint" style="margin-top:8px">O contato é marcado pelo vendedor no botão 📞 — o CRM não consegue confirmar se a mensagem foi enviada de fato. Muitos "respondeu" sem avanço de etapa é sinal para conversar com o vendedor.</div></div>
     <div class="panel"><div class="panel-t">🗂️ Forma de pagamento pretendida <small>leads que entraram no mês · o que o cliente sinalizou</small></div><div class="tbl-wrap"><table class="t" id="dPagInt"></table></div></div>
     <div class="panel"><div class="panel-t">🚨 Precisa de atenção agora <small>sem contato há +24h e follow-ups atrasados</small></div><div class="alert-list" id="dAlertas"></div></div>
   </div></div>
@@ -944,20 +946,62 @@ function renderMetaDia(){
 }
 function openContato(id){
   var l=getLead(id);if(!l)return;
-  var conta=l['Origem']==='Prospecção ativa';
+  var conta=l['Origem']==='Prospecção ativa',cad=cadOf(l);
   modal('<h3>📞 Registrar contato</h3><div class="sub">'+esc(l['Nome Cliente'])+' · '+(conta?'<span class="c-green">conta para a meta de prospecção</span>':'<span class="c-muted">lead de '+(esc(l['Origem'])||'anúncio')+' — não conta para a meta de prospecção</span>')+'</div>'
+    +(cad?'<div class="f"><label>O cliente respondeu?</label><div class="chips" id="ctResp"><button type="button" class="chip" onclick="pickChip(this);ctSug()">✅ Respondeu</button><button type="button" class="chip" onclick="pickChip(this);ctSug()">📵 Não respondeu</button></div>'
+      +'<div class="pp-hint">🔁 Este será o <b>'+(cad.toques+1)+'º contato</b> da sequência (dias '+CAD_DIAS.join(', ')+'). Se o cliente respondeu, a contagem recomeça. A data do próximo é sugerida sozinha — pode mudar.</div></div>':'')
     +'<div class="f"><label>Como foi? (opcional)</label><input id="ctTxt" placeholder="Ex: pediu orçamento do forno, retorna sexta"></div>'
     +'<div class="f"><label>📅 Próximo contato</label><input type="date" id="ctProx" value="">'
     +'<div class="chips" style="margin-top:6px">'+[['Amanhã',1],['Em 2 dias',2],['Em 3 dias',3],['Em 1 semana',7],['Em 15 dias',15]].map(function(x){return '<button type="button" class="chip" onclick="$(\'ctProx\').value=addDias(todayStr(),'+x[1]+');pickChip(this)">'+x[0]+'</button>';}).join('')+'</div></div>'
     +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-green" id="ctOk">✅ Contato feito</button></div>');
   $('ctOk').onclick=function(){
-    var t=$('ctTxt').value.trim(),px=$('ctProx').value;
-    if(!px&&!confirm('Sem data de próximo contato, este lead vai para "Sem data marcada". Continuar?'))return;
+    var t=$('ctTxt').value.trim(),px=$('ctProx').value,rs=cad?chipVal('ctResp'):'';
+    if(cad&&!rs)return toast('Marque se o cliente respondeu');
+    if(!px&&!(cad&&cad.toques+1>=CAD_DIAS.length&&rs.indexOf('Não')>=0)&&!confirm('Sem data de próximo contato, este lead vai para "Sem data marcada". Continuar?'))return;
     closeModal();
     var n=Object.assign({},l,{'Próximo Contato':px});if(t)n['Observações']=appendNote(l['Observações'],'📞 '+t);
-    saveLead(n,null,contatoDe(n,'Contato')).then(function(ok){if(ok)toast('📞 Contato registrado'+(conta?' — prospecção '+contDia(S.user.nome,todayStr())+'/'+metaDia(S.user.nome)+' hoje':''));});
+    var tipoC=cad?(rs.indexOf('Não')>=0?'Contato · sem resposta':'Contato · respondeu'):'Contato';
+    saveLead(n,null,contatoDe(n,tipoC)).then(function(ok){if(ok)toast('📞 Contato registrado'+(conta?' — prospecção '+contDia(S.user.nome,todayStr())+'/'+metaDia(S.user.nome)+' hoje':''));});
   };
+  window.ctSug=function(){if(!cad)return;var rs=chipVal('ctResp'),hoje=todayStr(),d='';
+    if(rs.indexOf('Não')<0)d=diaUtil(addDias(hoje,CAD_DIAS[0]));
+    else if(cad.toques+1<CAD_DIAS.length){d=diaUtil(addDias(ymdL(cad.ancora),CAD_DIAS[cad.toques+1]));if(d<=hoje)d=diaUtil(addDias(hoje,1));}
+    $('ctProx').value=d;
+    var h=$('ctFim');if(h)h.style.display=(rs.indexOf('Não')>=0&&cad.toques+1>=CAD_DIAS.length)?'block':'none';};
+  if(cad){var pr=$('ctProx').parentNode;pr.insertAdjacentHTML('beforeend','<div class="pp-hint" id="ctFim" style="display:none;color:var(--red)">⚠️ Último contato da sequência. Se não marcar data, o lead vai para "decidir" no Follow-ups (perdido ou novo contato).</div>');}
   setTimeout(function(){var e=$('ctTxt');if(e){e.focus();}},50);
+}
+
+// ================== SEQUÊNCIA DE CONTATOS (Em atendimento) ==================
+var CAD_DIAS=[3,6,10], CAD_ETAPA='Em atendimento';
+function ymdL(iso){if(!iso)return '';var d=new Date(iso);if(isNaN(d))return String(iso).slice(0,10);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function diaUtil(ymd){var p=ymd.split('-'),w=new Date(+p[0],+p[1]-1,+p[2]).getDay();return w===6?addDias(ymd,2):w===0?addDias(ymd,1):ymd;}
+function ehToque(c){return /^Contato/.test(c['Tipo']||'');}
+// estado da sequência de um lead em "Em atendimento"
+function cadOf(l){
+  if(!l||l['Status']!==CAD_ETAPA)return null;
+  var ini=l['Etapa Desde']||l['Criado em'],tIni=new Date(ini).getTime()||0;
+  var cs=S.contatos.filter(function(c){return c['ID Lead']===l['ID']&&ehToque(c)&&(new Date(c['Data']).getTime()||0)>=tIni;})
+    .sort(function(a,b){return new Date(a['Data'])-new Date(b['Data']);});
+  var ancora=ini,resp=0,tAnc=tIni;
+  cs.forEach(function(c){if(/respondeu$/.test(c['Tipo'])&&!/sem resposta/.test(c['Tipo'])){ancora=c['Data'];tAnc=new Date(c['Data']).getTime();resp++;}});
+  var toques=cs.filter(function(c){return new Date(c['Data']).getTime()>tAnc||(!resp&&new Date(c['Data']).getTime()>=tAnc);}).length;
+  var total=cs.length, n=Math.min(toques,CAD_DIAS.length), esgot=toques>=CAD_DIAS.length;
+  var prox=esgot?'':diaUtil(addDias(ymdL(ancora),CAD_DIAS[n]));
+  return {total:total,toques:toques,n:n,esgot:esgot,prox:prox,ancora:ancora,resp:resp,ultimo:cs.length?cs[cs.length-1]['Data']:''};
+}
+// data efetiva de próximo contato: a marcada pelo vendedor, senão a da sequência
+function proxEf(l){
+  var p=String(l['Próximo Contato']||'').slice(0,10);if(p)return p;
+  var c=cadOf(l);return c&&!c.esgot?c.prox:'';
+}
+function cadDecidir(l){var c=cadOf(l);return !!(c&&c.esgot&&!String(l['Próximo Contato']||'').slice(0,10));}
+function cadTag(l){
+  var c=cadOf(l);if(!c)return '';
+  var tt='<span class="tag" title="Contatos registrados desde que entrou em Em atendimento">📞 '+c.total+' contato'+(c.total!==1?'s':'')+'</span>';
+  if(c.esgot&&String(l['Próximo Contato']||'').slice(0,10))return tt+'<span class="tag" title="Sequência de 3 contatos concluída; retorno agendado manualmente">🔁 sequência concluída</span>';
+  if(c.esgot)return tt+'<span class="tag red" title="Fez os 3 contatos da sequência e o cliente não avançou. Decida: marcar como perdido ou agendar novo contato.">⚠️ Sequência 3/3 — decidir</span>';
+  return tt+'<span class="tag purple" title="Sequência de contatos: dias '+CAD_DIAS.join(', ')+' após entrar em atendimento'+(c.resp?' (reiniciada porque o cliente respondeu)':'')+'">🔁 '+(c.n+1)+'º toque'+(c.resp?' (recomeçou)':'')+' · '+dSem(proxEf(l))+' '+dBR(proxEf(l))+'</span>';
 }
 
 // ================== FOLLOW-UPS ==================
@@ -965,8 +1009,9 @@ function addDias(ymd,n){var p=ymd.split('-');var d=new Date(+p[0],+p[1]-1,+p[2]+
 var DIAS_SEM=['dom','seg','ter','qua','qui','sex','sáb'];
 function dSem(ymd){var p=ymd.split('-');return DIAS_SEM[new Date(+p[0],+p[1]-1,+p[2]).getDay()];}
 function fuGrupo(l){
-  var t=todayStr(),p=String(l['Próximo Contato']||'').slice(0,10);
+  var t=todayStr(),p=proxEf(l);
   if(l['Status']==='Novo lead'&&!p)return 'novo';
+  if(cadDecidir(l))return 'decidir';
   if(!p)return 'semdata';
   if(p<t)return 'atrasado';if(p===t)return 'hoje';if(p===addDias(t,1))return 'amanha';
   if(p<=addDias(t,7))return 'semana';return 'depois';
@@ -974,6 +1019,7 @@ function fuGrupo(l){
 var FU_GRUPOS=[
   {k:'novo',t:'⏰ Leads novos esperando o 1º contato',c:'#dc2626'},
   {k:'atrasado',t:'🔴 Atrasados',c:'#dc2626'},
+  {k:'decidir',t:'⚠️ Sequência terminou sem avançar — marcar como perdido ou agendar novo contato',c:'#c2410c'},
   {k:'hoje',t:'🟡 Hoje',c:'#c26a05'},
   {k:'amanha',t:'📅 Amanhã',c:'#2563eb'},
   {k:'semana',t:'🗓️ Próximos 7 dias',c:'#2563eb'},
@@ -985,17 +1031,17 @@ function fuLeads(){
   return S.leads.filter(function(l){return OPEN.indexOf(l['Status'])>=0&&(!fv||l['Vendedor']===fv);});
 }
 function updateFollowBadge(){
-  var n=fuLeads().filter(function(l){var g=fuGrupo(l);return g==='novo'||g==='atrasado'||g==='hoje';}).length;
+  var n=fuLeads().filter(function(l){var g=fuGrupo(l);return g==='novo'||g==='atrasado'||g==='hoje'||g==='decidir';}).length;
   var b=$('fuBadge');if(!b)return;b.textContent=n;b.classList.toggle('hidden',!n);
 }
 function renderFollow(){
   var ls=fuLeads(),grp={};
   ls.forEach(function(l){var g=fuGrupo(l);(grp[g]=grp[g]||[]).push(l);});
-  Object.keys(grp).forEach(function(k){grp[k].sort(function(a,b){return String(a['Próximo Contato']||a['Criado em']).localeCompare(String(b['Próximo Contato']||b['Criado em']));});});
+  Object.keys(grp).forEach(function(k){grp[k].sort(function(a,b){return String(proxEf(a)||a['Criado em']).localeCompare(String(proxEf(b)||b['Criado em']));});});
   function n(k){return (grp[k]||[]).length;}
-  var urg=n('novo')+n('atrasado');
+  var urg=n('novo')+n('atrasado')+n('decidir');
   $('fuResumo').innerHTML=
-    '<div class="fu-k'+(urg?' red':'')+'"><b>'+urg+'</b><span>atrasados / sem 1º contato</span></div>'
+    '<div class="fu-k'+(urg?' red':'')+'"><b>'+urg+'</b><span>atrasados / sem 1º contato / decidir</span></div>'
     +'<div class="fu-k'+(n('hoje')?' amber':'')+'"><b>'+n('hoje')+'</b><span>para hoje</span></div>'
     +'<div class="fu-k"><b>'+(n('amanha')+n('semana'))+'</b><span>próximos 7 dias</span></div>'
     +'<div class="fu-k"><b>'+n('semdata')+'</b><span>sem data marcada</span></div>';
@@ -1009,27 +1055,31 @@ function renderFollow(){
   $('fuLista').innerHTML=h;
 }
 function fuItem(l){
-  var st=stage(l['Status']),p=String(l['Próximo Contato']||'').slice(0,10),g=fuGrupo(l),t=todayStr(),quando='';
+  var _dec=fuGrupo(l)==='decidir';
+  var st=stage(l['Status']),p=proxEf(l),g=fuGrupo(l),t=todayStr(),quando='',cad=cadOf(l);
   if(g==='novo')quando='entrou há '+(hoursSince(l['Criado em'])>=48?daysSince(l['Criado em'])+' dias':hoursSince(l['Criado em'])+'h');
   else if(g==='atrasado'){var dd=Math.round((new Date(t)-new Date(p))/86400000);quando=dBR(p)+' · '+dd+(dd>1?' dias':' dia')+' de atraso';}
   else if(g==='hoje')quando='hoje';else if(g==='amanha')quando='amanhã';
+  else if(g==='decidir')quando='3 contatos feitos';
   else if(p)quando=dSem(p)+' '+dBR(p);else quando='—';
+  if(cad&&!cad.esgot&&!String(l['Próximo Contato']||'').slice(0,10)&&g!=='decidir')quando+='<br><span style="color:#6d28d9;font-weight:700">🔁 sequência</span>';
   var wa=waLink(l['Celular']),id=esc(l['ID']);
   var val=num(l['Valor Estimado']);
   return '<div class="fu-it" style="--c:'+st.c+'" onclick="openLead(\''+id+'\')">'
     +'<div class="fu-when '+g+'">'+quando+'</div>'
     +'<div class="fu-main"><div class="fu-name">'+esc(l['Nome Cliente'])+(isGestao()?' <span class="fu-vend">· '+esc(l['Vendedor'])+'</span>':'')+'</div>'
     +'<div class="fu-acao">'+(l['Próxima Ação']?'👉 '+esc(l['Próxima Ação']):'<span class="c-muted">'+(l['Produto']?'📦 '+esc(l['Produto']):'Sem próxima ação definida')+'</span>')+'</div>'
-    +'<div class="card-tags"><span class="tag" style="border-color:'+st.c+';color:'+st.c+'">'+st.ic+' '+st.k+'</span>'+(val?'<span class="tag">'+R$k(val)+'</span>':'')+(l['Celular']?'<span class="tag">'+esc(l['Celular'])+'</span>':'')+'</div></div>'
+    +'<div class="card-tags"><span class="tag" style="border-color:'+st.c+';color:'+st.c+'">'+st.ic+' '+st.k+'</span>'+cadTag(l)+(val?'<span class="tag">'+R$k(val)+'</span>':'')+(l['Celular']?'<span class="tag">'+esc(l['Celular'])+'</span>':'')+'</div></div>'
     +'<div class="fu-btns">'+(wa?'<a class="mini wa" href="'+wa+'" target="_blank" title="WhatsApp" onclick="event.stopPropagation()">💬</a>':'')
-    +'<button class="btn btn-green fu-ok" onclick="event.stopPropagation();openContato(\''+id+'\')">📞 Feito</button></div></div>';
+    +(_dec?'<button class="btn" style="color:var(--red)" onclick="event.stopPropagation();moveTo(\''+id+'\',\'Perdido\')">❌ Perdido</button>':'')
+    +'<button class="btn btn-green fu-ok" onclick="event.stopPropagation();openContato(\''+id+'\')">📞 '+(_dec?'Novo contato':'Feito')+'</button></div></div>';
 }
 
 // ================== KANBAN ==================
 function urgOf(l){
   if(OPEN.indexOf(l['Status'])<0)return '';
   if(l['Status']==='Novo lead'&&hoursSince(l['Criado em'])>=24)return 'semcontato';
-  var p=String(l['Próximo Contato']||'').slice(0,10);if(!p)return '';
+  var p=proxEf(l);if(!p)return '';
   var t=todayStr();if(p<t)return 'atrasado';if(p===t)return 'hoje';return '';
 }
 function setUrg(btn){S.urg=btn.getAttribute('data-u');renderBoard();}
@@ -1072,10 +1122,11 @@ function renderBoard(){
 }
 function cardHtml(l){
   var st=stage(l['Status']),i=stageIdx(l['Status']),u=urgOf(l),tags='';
-  if(u==='atrasado')tags+='<span class="tag red">🔴 Atrasado '+dBR(l['Próximo Contato'])+'</span>';
+  if(u==='atrasado')tags+='<span class="tag red">🔴 Atrasado '+dBR(proxEf(l))+'</span>';
   else if(u==='hoje')tags+='<span class="tag amber">🟡 Contato hoje</span>';
   else if(u==='semcontato')tags+='<span class="tag red">⏰ Sem contato há '+(hoursSince(l['Criado em'])>=48?daysSince(l['Criado em'])+' dias':hoursSince(l['Criado em'])+'h')+'</span>';
-  else if(l['Próximo Contato']&&OPEN.indexOf(l['Status'])>=0)tags+='<span class="tag blue">📅 '+dBR(l['Próximo Contato'])+'</span>';
+  else if(l['Próximo Contato']&&OPEN.indexOf(l['Status'])>=0&&!cadOf(l))tags+='<span class="tag blue">📅 '+dBR(l['Próximo Contato'])+'</span>';
+  tags+=cadTag(l);
   if(OPEN.indexOf(l['Status'])>=0){var ds=daysSince(l['Etapa Desde']);tags+='<span class="tag'+(ds>=7?' amber':'')+'">⏱ '+(ds===0?'entrou hoje':ds+'d na etapa')+'</span>';}
   if(l['Status']==='Perdido'&&l['Motivo Perda'])tags+='<span class="tag red">'+esc(l['Motivo Perda'])+'</span>';
   if(l['Forma Pagamento'])tags+='<span class="tag">💳 '+esc(l['Forma Pagamento'])+'</span>';
@@ -1111,6 +1162,7 @@ function moveTo(id,para){
 function commitMove(l,para,extra){
   var de=l['Status'];
   var n=Object.assign({},l,extra,{'Status':para,'Etapa Desde':nowISO()});
+  if(para===CAD_ETAPA){var pc=String(n['Próximo Contato']||'').slice(0,10);if(!pc||pc<=todayStr())n['Próximo Contato']=diaUtil(addDias(todayStr(),CAD_DIAS[0]));}
   if(para==='Fechado'||para==='Perdido')n['Data Encerramento']=nowISO();
   else{n['Data Encerramento']='';n['Motivo Perda']='';if(de==='Fechado')n['Valor Fechado']=0;}
   var mov={'Data':nowISO(),'ID Lead':l['ID'],'Cliente':l['Nome Cliente'],'Vendedor':l['Vendedor'],'De':de,'Para':para,'Por':S.user.nome};
@@ -1859,6 +1911,28 @@ function renderDash(){
     fs.forEach(function(k){var x=pi[k]=pi[k]||{l:0,v:0,p:0,ab:0};x.l++;if(l['Status']==='Fechado')x.v++;else if(l['Status']==='Perdido')x.p++;else x.ab++;});});
   var pik=Object.keys(pi).sort(function(a,b){return pi[b].l-pi[a].l;});
   $('dPagInt').innerHTML=pik.length?'<thead><tr><th>Forma sinalizada</th><th>Leads</th><th>% dos leads</th><th>Fecharam</th><th>Conversão</th><th>Em andamento</th><th>Perdidos</th></tr></thead><tbody>'+pik.map(function(k){var x=pi[k];return '<tr><td>'+esc(k)+'</td><td>'+x.l+'</td><td>'+(nL?(x.l/nL*100).toFixed(0):0)+'%</td><td class="c-green">'+x.v+'</td><td>'+(x.l?(x.v/x.l*100).toFixed(0):0)+'%</td><td class="c-amber">'+x.ab+'</td><td class="c-red">'+x.p+'</td></tr>';}).join('')+'<tr class="c-muted"><td>Sem forma informada</td><td>'+nSem+'</td><td>'+(nL?(nSem/nL*100).toFixed(0):0)+'%</td><td colspan="4"></td></tr></tbody>':'<tr><td class="empty">Nenhum lead do mês com forma de pagamento informada.</td></tr>';
+
+  // sequência de contatos
+  var vsC=vsel?[vsel]:atv,t0=todayStr();
+  var cadRows=vsC.map(function(v){
+    var ls=S.leads.filter(function(l){return l['Vendedor']===v&&l['Status']===CAD_ETAPA;}),emDia=0,atr=0,dec=0;
+    ls.forEach(function(l){if(cadDecidir(l))dec++;else{var p=proxEf(l);if(p&&p<t0)atr++;else emDia++;}});
+    var tq=S.contatos.filter(function(c){return c['Vendedor']===v&&ehToque(c)&&inM(c['Data'])&&/· (respondeu|sem resposta)$/.test(c['Tipo']);});
+    var rp=tq.filter(function(c){return /respondeu$/.test(c['Tipo'])&&!/sem resposta/.test(c['Tipo']);}).length;
+    var av=S.movs.filter(function(m){return m['Vendedor']===v&&m['De']===CAD_ETAPA&&inM(m['Data'])&&m['Para']!=='Perdido';}).length;
+    var pe=S.movs.filter(function(m){return m['Vendedor']===v&&m['De']===CAD_ETAPA&&inM(m['Data'])&&m['Para']==='Perdido';}).length;
+    return {v:v,n:ls.length,emDia:emDia,atr:atr,dec:dec,tq:tq.length,rp:rp,av:av,pe:pe};
+  });
+  $('dCad').innerHTML=cadRows.length?'<thead><tr><th>Vendedor</th><th>Em atendimento agora</th><th>Em dia</th><th>Toque atrasado</th><th>Aguardando decisão</th><th>Toques no mês</th><th>Responderam</th><th>Avançaram de etapa</th><th>Perdidos nesta etapa</th></tr></thead><tbody>'
+    +cadRows.map(function(x){return '<tr><td>'+esc(x.v)+'</td><td>'+x.n+'</td><td class="c-green">'+x.emDia+'</td><td class="'+(x.atr?'c-red':'c-muted')+'">'+x.atr+'</td><td class="'+(x.dec?'c-amber':'c-muted')+'">'+x.dec+'</td><td>'+x.tq+'</td><td>'+x.rp+(x.tq?' <span class="c-muted">('+(x.rp/x.tq*100).toFixed(0)+'%)</span>':'')+'</td><td class="c-green">'+x.av+'</td><td class="c-red">'+x.pe+'</td></tr>';}).join('')+'</tbody>':'<tr><td class="empty">Nenhum vendedor.</td></tr>';
+  // em qual toque o lead avançou (saídas de Em atendimento para etapas à frente, no mês)
+  var buck=[0,0,0,0,0],nomes=['Sem toque (avançou direto)','Depois do 1º toque','Depois do 2º toque','Depois do 3º toque','Depois de 4+ toques'];
+  S.movs.forEach(function(m){if(m['De']!==CAD_ETAPA||m['Para']==='Perdido'||!inM(m['Data']))return;if(vsel&&m['Vendedor']!==vsel)return;
+    var tSai=new Date(m['Data']).getTime(),ent=S.movs.filter(function(x){return x['ID Lead']===m['ID Lead']&&x['Para']===CAD_ETAPA&&new Date(x['Data']).getTime()<=tSai;}).map(function(x){return new Date(x['Data']).getTime();}).sort().pop();
+    if(ent===undefined){var ld=getLead(m['ID Lead']);ent=ld?new Date(ld['Criado em']).getTime():0;}
+    var k=S.contatos.filter(function(c){var tc=new Date(c['Data']).getTime();return c['ID Lead']===m['ID Lead']&&ehToque(c)&&tc>=ent&&tc<=tSai;}).length;buck[Math.min(4,k)]++;});
+  var bt=buck.reduce(function(a,b){return a+b;},0);
+  $('dCadAv').innerHTML=bt?'<thead><tr><th>Quando o lead saiu de Em atendimento para frente</th><th>Leads</th><th>%</th></tr></thead><tbody>'+buck.map(function(n,i){return n?'<tr><td>'+nomes[i]+'</td><td><span class="mb"><i style="width:'+(n/Math.max.apply(null,buck)*100)+'%;background:var(--purple)"></i></span>'+n+'</td><td>'+(n/bt*100).toFixed(0)+'%</td></tr>':'';}).join('')+'</tbody>':'<tr><td class="empty">Nenhum lead saiu de Em atendimento para frente neste mês'+(vsel?' para '+esc(vsel):'')+'.</td></tr>';
 
   // alertas
   var al=base.filter(function(l){var u=urgOf(l);return u==='semcontato'||u==='atrasado';});
