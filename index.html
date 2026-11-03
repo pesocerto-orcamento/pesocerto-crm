@@ -276,6 +276,79 @@ table.t tr.lk:hover td{background:var(--blue-g)}
 .bu-lg i.m{width:3px;background:#0f172a;border-radius:1px}
 .bu-lg i.rt{width:2px;background:repeating-linear-gradient(#0f172a 0 3px,transparent 3px 5px)}
 @media(max-width:520px){.rb-row,.bu-row{grid-template-columns:80px 1fr auto;gap:6px}.rb-t{font-size:10px}}
+.g-hero{display:flex;align-items:center;gap:22px;padding:20px 24px;border-radius:18px;color:#fff;margin-bottom:14px;
+  background:linear-gradient(135deg,#0f2a4a 0%,#1d4f8a 60%,#2563eb 100%);box-shadow:0 10px 30px rgba(15,42,74,.25);position:relative;overflow:hidden}
+.g-hero.win{background:linear-gradient(135deg,#7a5a00 0%,#b8860b 50%,#e0b23a 100%)}
+.g-hero::after{content:'';position:absolute;right:-50px;top:-50px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.07)}
+.g-ring{width:132px;height:132px;flex-shrink:0;transform:rotate(-90deg)}
+.g-rbg{fill:none;stroke:rgba(255,255,255,.18);stroke-width:12}
+.g-rfg{fill:none;stroke:#4ade80;stroke-width:12;stroke-linecap:round;transition:stroke-dasharray .6s}
+.g-hero.win .g-rfg{stroke:#fff}
+.g-ring text{transform:rotate(90deg);transform-origin:66px 66px;fill:#fff;text-anchor:middle}
+.g-rp{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:700}.g-rs{font-size:11px;opacity:.85;font-weight:700}
+.g-ht{flex:1;min-width:0;position:relative;z-index:1}
+.g-hl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;opacity:.85}
+.g-hv{font-size:26px;font-weight:800;margin-top:4px;line-height:1.15}
+.g-hm{font-size:13px;opacity:.92;margin-top:4px;line-height:1.5}
+.g-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.g-chips span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:20px;padding:5px 11px;font-size:12px}
+@media(max-width:560px){.g-hero{flex-direction:column;text-align:center;padding:18px}.g-chips{justify-content:center}.g-hv{font-size:21px}}
+.g-cal{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:6px}
+.g-day{border-radius:10px;padding:7px 4px;text-align:center;border:1px solid var(--border);background:var(--bg2);cursor:default}
+.g-day span{display:block;font-size:10px;font-weight:700;color:var(--text3)}
+.g-day b{display:block;font-family:'JetBrains Mono',monospace;font-size:15px;min-height:18px}
+.g-day.ok{background:#dcfce7;border-color:#86efac}.g-day.ok b{color:#15803d}
+.g-day.mid{background:#fef3c7;border-color:#fcd34d}.g-day.mid b{color:#b45309}
+.g-day.zero{background:#fee2e2;border-color:#fca5a5}.g-day.zero b{color:#b91c1c}
+.g-day.fut{opacity:.55}
+.g-day.today{box-shadow:0 0 0 2px var(--blue)}
+.g-lg{display:flex;flex-wrap:wrap;gap:12px;font-size:10px;font-weight:700;color:var(--text3);margin-top:10px}
+.g-lg i{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+.g-lg i.ok{background:#22c55e}.g-lg i.mid{background:#f59e0b}.g-lg i.zero{background:#ef4444}.g-lg i.fut{background:#cbd5e1}.g-lg i.mk{width:2px;background:#0f172a}
+.g-rank{display:flex;flex-direction:column;gap:8px}
+.g-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:var(--bg2);border:1px solid var(--border)}
+.g-row.me{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+.g-row.win{background:linear-gradient(90deg,#fff7db,#fffbeb);border-color:#f2d675}
+.g-pos{width:28px;text-align:center;font-size:18px;font-weight:800;color:var(--text3)}
+.g-av{width:38px;height:38px;border-radius:50%;background:#0f2a4a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.g-mid{flex:1;min-width:0}
+.g-name{font-size:14px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.g-name small{color:var(--text3);font-weight:600}
+.g-fire{font-size:11px;background:#fff1e6;color:#c2410c;border-radius:10px;padding:1px 6px;margin-left:4px}
+.g-bar{position:relative;height:10px;border-radius:6px;background:#e2e8f0;margin-top:6px;overflow:visible}
+.g-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#2563eb,#22c55e)}
+.g-row.win .g-bar i{background:linear-gradient(90deg,#d4a017,#f5c542)}
+.g-bar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:#0f172a;border-radius:1px}
+.g-num{text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);white-space:nowrap}
+.g-num b{font-size:16px;color:var(--text)}
+.g-st{display:block;font-family:var(--sans);font-size:10px;font-weight:800;margin-top:3px;padding:2px 7px;border-radius:8px;text-align:center}
+.g-gold{background:#fdf0c4;color:#8a6100}.g-ok{background:#dcfce7;color:#15803d}.g-warn{background:#fef3c7;color:#b45309}.g-muted{background:#e2e8f0;color:#64748b}
+.g-hc{display:inline-block;padding:3px 8px;border-radius:8px;font-weight:700}
+.g-hc small{font-weight:500;opacity:.7}
+.g-hok{background:#fdf0c4;color:#8a6100}.g-hrit{background:#dcfce7;color:#15803d}.g-hmid{background:#fef3c7;color:#b45309}.g-hlow{background:#fee2e2;color:#b91c1c}
+#gameView table.t th:first-child,#gameView table.t td:first-child{background:var(--white)}
+#gameView table.t tbody tr:nth-child(even) td{background:rgba(241,244,248,.7)}
+#gameView table.t tr.tot td{background:var(--bg2)!important}
+.g-mystery{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.1);border:1px dashed rgba(255,255,255,.4);border-radius:14px;padding:10px 14px;margin-top:12px;text-align:left}
+.g-mystery b{display:block;font-size:14px}.g-mystery span{display:block;font-size:12px;opacity:.9}
+.g-mystery .g-dica{margin-top:4px;opacity:1;font-weight:700}
+.g-box{position:relative;font-size:34px;line-height:1;animation:gbox 2.4s ease-in-out infinite;flex-shrink:0}
+.g-box i{position:absolute;right:-6px;top:-6px;font-style:normal;font-size:13px;font-weight:800;background:#facc15;color:#0f2a4a;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center}
+@keyframes gbox{0%,100%{transform:rotate(0)}10%{transform:rotate(-10deg)}20%{transform:rotate(8deg)}30%{transform:rotate(0)}}
+@media(prefers-reduced-motion:reduce){.g-box{animation:none}}
+.g-reveal{margin-top:8px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);border-radius:14px;padding:10px 14px;animation:greveal .6s ease-out}
+.g-reveal span{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;opacity:.9}
+.g-reveal b{display:block;font-size:20px;margin-top:2px}
+@keyframes greveal{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+@media(max-width:560px){.g-mystery{text-align:left}}
+.g-prize{border-left:4px solid #c9a227!important}
+.g-rules ul{margin:0;padding-left:18px;font-size:13px;line-height:1.7;color:var(--text2)}
+@media(max-width:560px){.g-row{gap:8px;padding:9px}.g-av{display:none}.g-num b{font-size:14px}}
+#gameView{background:radial-gradient(1200px 400px at 50% -100px,rgba(201,162,39,.10),transparent)}
+#gameView .panel{background:var(--white);border:none;border-radius:16px;box-shadow:0 1px 2px rgba(15,23,42,.06),0 4px 14px rgba(15,23,42,.06);padding:18px}
+#gameView .panel-t{font-size:14px;padding-bottom:10px;margin-bottom:14px;border-bottom:1px solid var(--border)}
+#gameView .kpis{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){#gameView .kpis{grid-template-columns:repeat(2,1fr)}}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;z-index:200;box-shadow:0 6px 20px rgba(0,0,0,.25)}
 
 /* DASHBOARD */
@@ -358,6 +431,7 @@ table.t td .mb>i{display:block;height:100%}
       <button id="vbFollow" onclick="setView('follow')">📅 Follow-ups <span class="vb-n hidden" id="fuBadge">0</span></button>
       <button class="hidden" id="vbDash" onclick="setView('dash')">📊 Dashboard</button>
       <button class="hidden" id="vbProd" onclick="setView('prod')">📦 Produtos</button>
+      <button id="vbGame" onclick="setView('game')">🏆 Metas</button>
     </div>
     <div class="spacer"></div>
     <div class="metadia" id="metaDia"></div>
@@ -389,6 +463,16 @@ table.t td .mb>i{display:block;height:100%}
     </div>
     <div class="fu-resumo" id="fuResumo"></div>
     <div id="fuLista"></div>
+  </div></div>
+
+  <!-- GAMIFICAÇÃO -->
+  <div id="gameView" class="hidden"><div class="dash">
+    <div class="dash-head">
+      <h2>🏆 Desafio de Prospecção</h2>
+      <select id="gVend" class="hidden" onchange="renderGame()"></select>
+      <select id="gMes" onchange="loadGame()"></select>
+    </div>
+    <div id="gBody"><div class="empty">Carregando…</div></div>
   </div></div>
 
   <!-- PRODUTOS -->
@@ -482,7 +566,8 @@ var CONFIG = {
   // Vazio = modo local (dados ficam só neste navegador).
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycby9vPIN_QRUZ4WDt6PFntFooj1E2FbJ8pe5DRudz6hqsbmqRpXOThtFlUbD3L_1jGfjWg/exec',
   META_MENSAL: 190000,      // meta mínima mensal padrão por vendedor (R$) — na planilha dá para mudar por pessoa
-  META_CONTATOS_DIA: 10,    // clientes que cada vendedor precisa contatar por dia
+  META_CONTATOS_DIA: 10,
+  // clientes que cada vendedor precisa contatar por dia
   DIAS_UTEIS: [1,2,3,4,5]   // dias que contam para a meta diária (1=seg … 6=sáb)
 };
 
@@ -606,6 +691,17 @@ function localApi(action,d){
     if(d.mov){movs.push(d.mov);writeLS(LS_MOVS,movs);}
     return {ok:true,lead:l};
   }
+  if(action==='ranking'){
+    var rk=rankingLocal(d.mes||todayStr().slice(0,7),leads,conts,LOCAL_USERS.map(function(u){return {nome:u.nome,tipo:u.tipo,metaDia:CONFIG.META_CONTATOS_DIA};}));
+    var pr=readLS('pc_crm_premio_'+rk.mes,{}),eu=rk.ranking.filter(function(x){return x.nome===me.nome;})[0],bt=eu&&eu.feitos>=eu.metaMes;
+    rk.premio={definido:!!pr.descricao,dica:pr.dica||''};
+    if(me.tipo==='gestao'){rk.premio.descricao=pr.descricao||'';rk.premio.valor=pr.valor||0;}else if(bt)rk.premio.descricao=pr.descricao||'';
+    return rk;
+  }
+  if(action==='setPremio'){
+    if(me.tipo!=='gestao')return {ok:false,error:'Só a Gestão pode alterar o prêmio.'};
+    writeLS('pc_crm_premio_'+d.mes,{descricao:d.descricao||'',dica:d.dica||'',valor:num(d.valor)});return {ok:true};
+  }
   if(action==='delete'){
     var alvo=leads.filter(function(x){return x['ID']===d.id;})[0];
     if(alvo&&!podeExcluir(alvo))return {ok:false,error:'Só dá para apagar até '+HORAS_EXCLUIR+'h depois de criar. Peça para a Gestão.'};
@@ -688,10 +784,11 @@ function fillVendSelects(){
 }
 function setView(v){
   S.view=v;
-  $('vbKanban').classList.toggle('on',v==='kanban');$('vbFollow').classList.toggle('on',v==='follow');$('vbDash').classList.toggle('on',v==='dash');$('vbProd').classList.toggle('on',v==='prod');
-  $('kanbanView').classList.toggle('hidden',v!=='kanban');$('followView').classList.toggle('hidden',v!=='follow');$('dashView').classList.toggle('hidden',v!=='dash');$('prodView').classList.toggle('hidden',v!=='prod');
+  $('vbKanban').classList.toggle('on',v==='kanban');$('vbFollow').classList.toggle('on',v==='follow');$('vbDash').classList.toggle('on',v==='dash');$('vbProd').classList.toggle('on',v==='prod');$('vbGame').classList.toggle('on',v==='game');
+  $('kanbanView').classList.toggle('hidden',v!=='kanban');$('followView').classList.toggle('hidden',v!=='follow');$('dashView').classList.toggle('hidden',v!=='dash');$('prodView').classList.toggle('hidden',v!=='prod');$('gameView').classList.toggle('hidden',v!=='game');
   if(v==='dash')renderDash();
   if(v==='prod')renderProd();
+  if(v==='game')loadGame();
   if(v==='follow')renderFollow();
   window.scrollTo(0,0);
 }
@@ -771,7 +868,22 @@ function contatoDe(l,tipo){return {'Data':nowISO(),'Dia':todayStr(),'ID Lead':l[
 // clientes únicos contatados por pessoa num dia
 // só conta prospecção ativa (fora anúncios): registro de prospecção ou contato em lead com origem "Prospecção ativa"
 function ehProspec(c){if(String(c['Tipo']||'').indexOf('Prospecção')===0)return true;var l=getLead(c['ID Lead']);return !!(l&&l['Origem']==='Prospecção ativa');}
-function contDia(por,dia){var ids={};S.contatos.forEach(function(c){if(c['Por']===por&&String(c['Dia']).slice(0,10)===dia&&ehProspec(c))ids[c['ID Lead']]=1;});return Object.keys(ids).length;}
+// cada cliente conta uma vez (pelo telefone): prospectar o mesmo número de novo não soma
+function chaveCont(c,leadsMap){var id=String(c['ID Lead']||'');if(id.indexOf('PR-')===0)return id.slice(3);var l=leadsMap?leadsMap[id]:getLead(id);var d=l?String(l['Celular']||'').replace(/\D/g,''):'';return d||id;}
+function contDia(por,dia){var ids={};S.contatos.forEach(function(c){if(c['Por']===por&&String(c['Dia']).slice(0,10)===dia&&ehProspec(c))ids[chaveCont(c)]=1;});return Object.keys(ids).length;}
+// mesmo cálculo da planilha (usado no modo local)
+function rankingLocal(mes,leads,conts,users){
+  var y=+mes.slice(0,4),m=+mes.slice(5,7),dm=new Date(y,m,0).getDate(),uteis=[];
+  for(var d=1;d<=dm;d++){var wd=new Date(y,m-1,d).getDay();if(wd>=1&&wd<=5)uteis.push(mes+'-'+String(d).padStart(2,'0'));}
+  var lm={};leads.forEach(function(l){lm[l['ID']]=l;});
+  var por={};
+  conts.forEach(function(c){var dia=String(c['Dia']||'').slice(0,10);if(dia.slice(0,7)!==mes)return;var l=lm[c['ID Lead']];
+    var pr=String(c['Tipo']||'').indexOf('Prospecção')===0||(l&&l['Origem']==='Prospecção ativa');if(!pr)return;
+    var k=chaveCont(c,lm);var p=por[c['Por']]=por[c['Por']]||{mes:{},dias:{}};p.mes[k]=1;(p.dias[dia]=p.dias[dia]||{})[k]=1;});
+  return {ok:true,mes:mes,hoje:todayStr(),uteis:uteis,ranking:users.filter(function(u){return u.tipo==='vendedor';}).map(function(u){
+    var md=+u.metaDia||CONFIG.META_CONTATOS_DIA,p=por[u.nome]||{mes:{},dias:{}},dias={};Object.keys(p.dias).forEach(function(k){dias[k]=Object.keys(p.dias[k]).length;});
+    return {nome:u.nome,metaDia:md,metaMes:md*uteis.length,feitos:Object.keys(p.mes).length,dias:dias};})};
+}
 var RESULTADOS=[{k:'Tem interesse',ic:'✅',lead:true},{k:'Pediu para retornar',ic:'📅',lead:true},{k:'Sem interesse',ic:'🙅',lead:false},{k:'Não atendeu / não respondeu',ic:'📵',lead:false}];
 function openProspec(){
   if(isGestao())return setView('dash');
@@ -779,7 +891,7 @@ function openProspec(){
   modal('<h3>🎯 Registrar prospecção</h3>'
     +'<div class="pros-info"><b>Meta: '+meta+' clientes novos por dia</b> — prospecção ativa (ligação, WhatsApp, visita), <u>fora os leads de anúncio</u>. Hoje: <b>'+feito+'/'+meta+'</b></div>'
     +'<div class="grid2 g-fix"><div class="f"><label>Cliente / empresa *</label><input id="psNome" placeholder="Ex: Restaurante Sabor"></div>'
-    +'<div class="f"><label>WhatsApp / telefone</label><input id="psCel" class="mono" type="tel" inputmode="numeric" placeholder="(24) 99999-0000" oninput="maskPhone(this)"></div></div>'
+    +'<div class="f"><label>WhatsApp / telefone *</label><input id="psCel" class="mono" type="tel" inputmode="numeric" placeholder="(24) 99999-0000" oninput="maskPhone(this)"></div></div>'
     +'<div class="f"><label>Tipo de negócio</label>'+chipsHtml('psTipo',TIPOS,'')+'</div>'
     +'<div class="f"><label>Como foi? *</label><div class="res-opts" id="psRes">'+RESULTADOS.map(function(r){return '<button type="button" class="res-opt" data-k="'+r.k+'" onclick="pickRes(this)"><span>'+r.ic+'</span>'+r.k+(r.lead?'<small>vira lead no funil</small>':'<small>só conta na meta</small>')+'</button>';}).join('')+'</div></div>'
     +'<div id="psLeadBox" class="hidden">'+itensHtml('psProd','O que ele procura? (opcional)','')
@@ -796,6 +908,7 @@ function saveProspec(){
   var nome=$('psNome').value.trim(),cel=$('psCel').value.trim(),rb=document.querySelector('#psRes .res-opt.on');
   if(!nome){$('psNome').focus();return toast('Informe o nome do cliente');}
   if(!rb)return toast('Escolha como foi o contato');
+  if(cel.replace(/\D/g,'').length<10){$('psCel').focus();return toast('Informe o telefone com DDD — sem telefone a prospecção não conta na meta');}
   var res=rb.getAttribute('data-k'),r=RESULTADOS.filter(function(x){return x.k===res;})[0],obs=$('psObs').value.trim(),tipo=chipVal('psTipo');
   var dig=cel.replace(/\D/g,'');
   if(r.lead){
@@ -810,7 +923,7 @@ function saveProspec(){
     saveLead(l,{'Data':nowISO(),'ID Lead':l['ID'],'Cliente':nome,'Vendedor':S.user.nome,'De':'','Para':'Em atendimento','Por':S.user.nome},contatoDe(l,'Prospecção: '+res))
       .then(function(ok){if(ok)toast('🎯 Prospecção registrada e lead criado — '+contDia(S.user.nome,todayStr())+'/'+metaDia(S.user.nome)+' hoje');});
   }else{
-    var c={'Data':nowISO(),'Dia':todayStr(),'ID Lead':'PR-'+(dig||normTxt(nome).replace(/[^A-Z0-9]/g,'').slice(0,20)),'Cliente':nome+(cel?' · '+cel:'')+(tipo?' · '+tipo:'')+(obs?' — '+obs:''),'Vendedor':S.user.nome,'Tipo':'Prospecção: '+res,'Por':S.user.nome};
+    var c={'Data':nowISO(),'Dia':todayStr(),'ID Lead':'PR-'+dig,'Cliente':nome+(cel?' · '+cel:'')+(tipo?' · '+tipo:'')+(obs?' — '+obs:''),'Vendedor':S.user.nome,'Tipo':'Prospecção: '+res,'Por':S.user.nome};
     closeModal();
     S.contatos.push(c);renderMetaDia();
     api('save',{contato:c}).then(function(rr){if(!rr.ok){S.contatos.pop();renderMetaDia();return alert('Não foi possível salvar: '+(rr.error||''));}
@@ -818,6 +931,7 @@ function saveProspec(){
   }
 }
 function renderMetaDia(){
+  if(S.view==='game'&&S.game)setTimeout(loadGame,600);
   var el=$('metaDia');if(!el||!S.user)return;var hoje=todayStr(),feito,meta;
   if(isGestao()){var at=ativos();feito=at.reduce(function(a,n){return a+contDia(n,hoje);},0);meta=at.reduce(function(a,n){return a+metaDia(n);},0);}
   else{feito=contDia(S.user.nome,hoje);meta=metaDia(S.user.nome);}
@@ -1029,6 +1143,7 @@ function openNew(){
   modal('<h3>🆕 Novo lead</h3><div class="sub">Só o básico. Os outros dados você completa depois no cartão.</div>'
     +'<div class="f"><label>Nome do cliente *</label><input id="nNome" placeholder="Ex: João — Restaurante Sabor" autocomplete="off"></div>'
     +'<div class="f"><label>WhatsApp *</label><input id="nCel" class="mono" type="tel" inputmode="numeric" placeholder="(24) 99999-0000" oninput="maskPhone(this)"></div>'
+    +'<div class="f"><label>E-mail (opcional)</label><input id="nEmail" type="email" placeholder="cliente@email.com"></div>'
     +itensHtml('nProd','O que ele procura?','')
     +'<div class="grid2 g-fix"><div class="f"><label>Valor estimado (R$)</label><input id="nValor" class="mono" inputmode="numeric" placeholder="0,00" oninput="maskMoney(this);descHint(\'nValor\',\'nDesc\',\'nDescH\')"></div>'
     +'<div class="f"><label>Possível desconto (%)</label><input id="nDesc" class="mono" inputmode="decimal" placeholder="0" oninput="pctIn(this);descHint(\'nValor\',\'nDesc\',\'nDescH\')"></div></div>'
@@ -1047,7 +1162,7 @@ function saveNew(){
   var dup=S.leads.filter(function(l){return String(l['Celular']).replace(/\D/g,'')===cel.replace(/\D/g,'')&&OPEN.indexOf(l['Status'])>=0;})[0];
   if(dup&&!confirm('Já existe um lead aberto com esse WhatsApp: '+dup['Nome Cliente']+' ('+dup['Vendedor']+'). Criar mesmo assim?'))return;
   var l={'ID':makeId(),'Criado em':nowISO(),'Atualizado em':nowISO(),'Vendedor':isGestao()?$('nVend').value:S.user.nome,
-    'Nome Cliente':nome,'Celular':cel,'Cidade':'','Tipo de Negócio':'','Origem':chipVal('nOrigem'),'Produto':itensFinal('nProd'),
+    'Nome Cliente':nome,'Celular':cel,'Email':($('nEmail').value||'').trim().toLowerCase(),'Cidade':'','Tipo de Negócio':'','Origem':chipVal('nOrigem'),'Produto':itensFinal('nProd'),
     'Valor Estimado':num($('nValor').value),'Desconto %':num($('nDesc').value),'Forma Pagamento':chipVal('nPag'),'Status':'Novo lead','Etapa Desde':nowISO(),'Próximo Contato':'','Próxima Ação':'',
     'Valor Fechado':0,'Data Encerramento':'','Motivo Perda':'','Observações':''};
   closeModal();
@@ -1101,6 +1216,7 @@ function openLead(id){
     +'<div class="sec-label">Dados do cliente</div><div class="grid2">'
     +'<div class="f"><label>Nome *</label><input id="eNome" value="'+esc(l['Nome Cliente'])+'"></div>'
     +'<div class="f"><label>WhatsApp</label><input id="eCel" class="mono" value="'+esc(l['Celular'])+'" oninput="maskPhone(this)"></div>'
+    +'<div class="f"><label>E-mail</label><input id="eEmail" type="email" value="'+esc(l['Email']||'')+'" placeholder="cliente@email.com"></div>'
     +'<div class="f"><label>Cidade</label><input id="eCid" value="'+esc(l['Cidade'])+'"></div>'
     +'<div class="f"><label>Tipo de negócio</label><select id="eTipo"><option value="">—</option>'+TIPOS.map(function(t){return '<option'+(t===l['Tipo de Negócio']?' selected':'')+'>'+t+'</option>';}).join('')+'</select></div>'
     +'</div>'+itensHtml('eProd','Produtos de interesse',l['Produto'])+'<div class="grid2">'
@@ -1130,7 +1246,7 @@ function addNote(id){
 function saveDetail(id){
   var l=getLead(id);if(!l)return;
   var nome=$('eNome').value.trim();if(!nome)return toast('O nome não pode ficar vazio');
-  var n=Object.assign({},l,{'Nome Cliente':nome,'Celular':$('eCel').value.trim(),'Cidade':$('eCid').value.trim(),
+  var n=Object.assign({},l,{'Nome Cliente':nome,'Celular':$('eCel').value.trim(),'Email':$('eEmail').value.trim().toLowerCase(),'Cidade':$('eCid').value.trim(),
     'Tipo de Negócio':$('eTipo').value,'Produto':itensFinal('eProd'),'Valor Estimado':num($('eValor').value),'Desconto %':num($('eDesc').value),'Forma Pagamento':$('ePag').value,'Origem':$('eOrig').value,
     'Próximo Contato':$('eProx').value,'Próxima Ação':$('eAcao').value.trim()});
   if(isGestao())n['Vendedor']=$('eVend').value;
@@ -1255,9 +1371,9 @@ function cumHover(){
   hit.addEventListener('mouseleave',function(){ln.setAttribute('opacity','0');dt.setAttribute('opacity','0');t.style.display='none';});
 }
 // barras verticais (vendas por semana)
-function colSVG(lbls,vals,tips,elId,fmt){
+function colSVG(lbls,vals,tips,elId,fmt,minMax){
   var el=$(elId||'dWeeks'),cw=el.clientWidth||520,W=Math.max(300,cw),H=210,L=60,R=8,T=22,B=24,pw=W-L-R,ph=H-T-B;
-  var mx=fmt?Math.max(4,Math.ceil(Math.max.apply(null,vals.concat([1]))/4)*4):niceMax(Math.max.apply(null,vals.concat([1]))),n=vals.length,slot=pw/n,bw=Math.min(56,slot*0.62),g='';
+  var mx=minMax?Math.max(minMax,niceMax(Math.max.apply(null,vals.concat([1])))):fmt?Math.max(4,Math.ceil(Math.max.apply(null,vals.concat([1]))/4)*4):niceMax(Math.max.apply(null,vals.concat([1]))),n=vals.length,slot=pw/n,bw=Math.min(56,slot*0.62),g='';
   function Y(v){return T+ph-(v/mx)*ph;}
   for(var k=0;k<=4;k++){var v=mx*k/4,yy=Y(v);g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'" stroke="'+VZ.grid+'"/><text x="'+(L-8)+'" y="'+(yy+4)+'" text-anchor="end" class="ax">'+(v?(fmt?fmt(v):R$k(v).replace('R$ ','')):'0')+'</text>';}
   vals.forEach(function(v,i){var x=L+slot*i+(slot-bw)/2,y=Y(v),h=T+ph-y,r=Math.min(4,h);
@@ -1272,6 +1388,126 @@ function rankBars(items,cor,vazio){
   if(!items.length)return '<div class="empty">'+vazio+'</div>';
   var mx=items.reduce(function(a,x){return Math.max(a,x.v);},1);
   return '<div class="rb">'+items.map(function(x){return '<div class="rb-row"'+tipAttr(x.tip||'')+'><span class="rb-l">'+esc(x.l)+'</span><div class="rb-tr"><div class="rb-f" style="width:'+Math.max(2,x.v/mx*100)+'%;background:'+cor+'"></div><b>'+x.v+'</b></div><span class="rb-t">'+(x.t||'')+'</span></div>';}).join('')+'</div>';
+}
+
+// ================== GAMIFICAÇÃO ==================
+var MESES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+function nomeMes(m){return MESES[+m.slice(5,7)-1]+' '+m.slice(0,4);}
+function fillGameMeses(){
+  var sel=$('gMes');if(sel.options.length)return;var d=new Date(),n=isGestao()?6:2,h='';
+  for(var i=0;i<n;i++){var x=new Date(d.getFullYear(),d.getMonth()-i,1),v=x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0');h+='<option value="'+v+'">'+nomeMes(v)+'</option>';}
+  sel.innerHTML=h;
+}
+function loadGame(){
+  fillGameMeses();var mes=$('gMes').value;
+  if(isGestao()){var gv=$('gVend');gv.classList.remove('hidden');if(!gv.options.length)gv.innerHTML='<option value="">👥 Equipe toda</option>'+ativos().map(function(v){return '<option>'+esc(v)+'</option>';}).join('');loadGameHist();}
+  if(!S.game||S.game.mes!==mes)$('gBody').innerHTML='<div class="empty" style="padding:30px">Carregando…</div>';
+  api('ranking',{mes:mes}).then(function(r){if(!r.ok){$('gBody').innerHTML='<div class="empty c-red">'+esc(r.error||'Erro')+'</div>';return;}S.game=r;renderGame();});
+}
+function statusVend(x,G){
+  var passados=G.uteis.filter(function(d){return d<G.hoje;}).length,rest=G.uteis.filter(function(d){return d>=G.hoje;}).length;
+  var esperado=x.metaDia*passados,falta=Math.max(0,x.metaMes-x.feitos),fechado=G.mes<G.hoje.slice(0,7);
+  var st=x.feitos>=x.metaMes?'bateu':fechado?'nao':x.feitos>=esperado?'ritmo':'abaixo';
+  var seq=0;for(var i=G.uteis.length-1;i>=0;i--){var d=G.uteis[i];if(d>G.hoje)continue;var n=x.dias[d]||0;if(d===G.hoje&&n<x.metaDia)continue;if(n>=x.metaDia)seq++;else break;}
+  var naMeta=G.uteis.filter(function(d){return d<=G.hoje&&(x.dias[d]||0)>=x.metaDia;}).length;
+  return {st:st,falta:falta,rest:rest,porDia:rest?Math.ceil(falta/rest):falta,pct:x.metaMes?Math.min(100,x.feitos/x.metaMes*100):0,seq:seq,naMeta:naMeta,passados:passados,esperado:esperado};
+}
+var ST_LBL={bateu:['🏆 Meta batida','g-gold'],ritmo:['✅ No ritmo','g-ok'],abaixo:['⚠️ Abaixo do ritmo','g-warn'],nao:['Não bateu','g-muted']};
+function renderGame(){
+  var G=S.game,P=G.premio||{},PV=+P.valor||0,h='';
+  var rows=G.ranking.map(function(x){return {x:x,s:statusVend(x,G)};}).sort(function(a,b){return b.s.pct-a.s.pct||b.x.feitos-a.x.feitos;});
+  var alvo=isGestao()?$('gVend').value:S.user.nome;
+  var eu=alvo?rows.filter(function(r){return r.x.nome===alvo;})[0]:null;
+  if(eu){
+    var x=eu.x,st=eu.s,C=2*Math.PI*54,ok=st.st==='bateu';
+    h+='<div class="g-hero'+(ok?' win':'')+'"><svg viewBox="0 0 132 132" class="g-ring"><circle cx="66" cy="66" r="54" class="g-rbg"/><circle cx="66" cy="66" r="54" class="g-rfg" style="stroke-dasharray:'+(C*st.pct/100)+' '+C+'"/>'
+      +'<text x="66" y="62" class="g-rp">'+x.feitos+'</text><text x="66" y="82" class="g-rs">de '+x.metaMes+'</text></svg>'
+      +'<div class="g-ht"><div class="g-hl">'+(isGestao()?'Meta de '+esc(x.nome)+' em ':'Sua meta de ')+nomeMes(G.mes)+'</div>'
+      +(ok?'<div class="g-hv">🏆 Meta batida!</div>'+(P.descricao?'<div class="g-reveal"><span>🎁 '+(isGestao()?'Prêmio do mês':'Seu prêmio')+'</span><b>'+esc(P.descricao)+'</b></div>':'<div class="g-hm">Você garantiu o 🎁 prêmio misterioso! A Gestão vai revelar em breve.</div>')
+          :'<div class="g-hv">'+x.feitos+' clientes prospectados</div><div class="g-hm">'+(st.st==='nao'?'O mês fechou '+st.falta+' abaixo da meta.':'Faltam <b>'+st.falta+'</b> · precisa de <b>'+st.porDia+' por dia</b> nos '+st.rest+' dias úteis que restam.')+'</div>')
+      +(!ok?'<div class="g-mystery"><div class="g-box">🎁<i>?</i></div><div><b>Prêmio misterioso</b><span>Só é revelado para quem bater a meta de '+x.metaMes+' clientes.</span>'+(P.dica?'<span class="g-dica">💡 Dica: '+esc(P.dica)+'</span>':'')+'</div></div>':'')
+      +'<div class="g-chips"><span>🔥 Sequência: <b>'+st.seq+'</b> dia'+(st.seq===1?'':'s')+'</span><span>📅 Dias na meta: <b>'+st.naMeta+'</b> de '+st.passados+(G.uteis.indexOf(G.hoje)>=0?' (+hoje)':'')+'</span></div></div></div>';
+    // calendário
+    h+='<div class="panel"><div class="panel-t">📅 '+(isGestao()?'Dias úteis de '+esc(x.nome):'Seus dias úteis')+' <small>meta de '+x.metaDia+' clientes por dia</small></div><div class="g-cal">'
+      +G.uteis.map(function(d){var n=x.dias[d]||0,cls=d>G.hoje?'fut':n>=x.metaDia?'ok':n>0?'mid':d<G.hoje?'zero':'hoje0';
+        return '<div class="g-day '+cls+(d===G.hoje?' today':'')+'"'+tipAttr('<b>'+d.split('-').reverse().join('/')+'</b><br>'+n+' de '+x.metaDia+' clientes')+'><span>'+(+d.slice(8))+'</span><b>'+(d>G.hoje?'':n)+'</b></div>';}).join('')
+      +'</div><div class="g-lg"><span><i class="ok"></i>bateu o dia</span><span><i class="mid"></i>parcial</span><span><i class="zero"></i>sem prospecção</span><span><i class="fut"></i>a vir</span></div></div>';
+  }
+  if(isGestao()){
+    var ganh=rows.filter(function(r){return r.s.st==='bateu';});
+    var tot=rows.reduce(function(a,r){return a+r.x.feitos;},0),metaT=rows.reduce(function(a,r){return a+r.x.metaMes;},0);
+    h+='<div class="kpis">'
+      +'<div class="kpi k2" style="--k:#c9a227"><div class="k-ic">🏆</div><div class="kpi-l">Bateram a meta</div><div class="kpi-v">'+ganh.length+' <small>de '+rows.length+'</small></div><div class="kpi-s">'+(ganh.map(function(r){return esc(r.x.nome);}).join(', ')||'ninguém ainda')+'</div></div>'
+      +'<div class="kpi k2" style="--k:#15803d"><div class="k-ic">🎁</div><div class="kpi-l">Prêmios a entregar</div><div class="kpi-v c-green">'+ganh.length+(PV?' <small>· '+R$(ganh.length*PV)+'</small>':'')+'</div><div class="kpi-s">'+(P.descricao?esc(P.descricao):'prêmio ainda não definido')+'</div></div>'
+      +'<div class="kpi k2" style="--k:#2563eb"><div class="k-ic">🎯</div><div class="kpi-l">Prospecção da equipe</div><div class="kpi-v c-blue">'+tot+' <small>/ '+metaT+'</small></div><div class="kpi-s">'+(metaT?(tot/metaT*100).toFixed(0):0)+'% da meta somada</div></div>'
+      +'<div class="kpi k2" style="--k:#c26a05"><div class="k-ic">📆</div><div class="kpi-l">Dias úteis</div><div class="kpi-v">'+G.uteis.filter(function(d){return d<G.hoje;}).length+' <small>/ '+G.uteis.length+'</small></div><div class="kpi-s">já passaram no mês</div></div></div>';
+  }
+  if(isGestao()){
+    h+='<div class="panel g-prize"><div class="panel-t">🎁 Prêmio misterioso de '+nomeMes(G.mes)+' <small>os vendedores só veem o prêmio quando batem a meta</small></div>'
+      +'<div class="grid2"><div class="f"><label>Prêmio (secreto) *</label><input id="pzDesc" value="'+esc(P.descricao||'')+'" placeholder="Ex: Vale-compras de R$ 200 / Folga na sexta / Jantar para 2"></div>'
+      +'<div class="f"><label>Dica para a equipe (aparece para todos)</label><input id="pzDica" value="'+esc(P.dica||'')+'" placeholder="Ex: Tem a ver com o fim de semana… 😉"></div>'
+      +'<div class="f"><label>Valor por ganhador (R$) — só para seu controle</label><input id="pzVal" class="mono" inputmode="numeric" value="'+moneyIn(PV)+'" oninput="maskMoney(this)" placeholder="0,00"></div>'
+      +'<div class="f" style="display:flex;align-items:flex-end"><button class="btn btn-primary" style="width:100%;padding:12px" onclick="salvarPremio()">💾 Salvar prêmio do mês</button></div></div>'
+      +(P.definido?'':'<div class="pp-hint c-amber" style="font-weight:700">⚠️ Prêmio deste mês ainda não definido. A equipe vê só "Prêmio misterioso".</div>')+'</div>';
+  }
+  // ranking
+  h+='<div class="panel"><div class="panel-t">🏁 Ranking da equipe <small>'+nomeMes(G.mes)+' · clientes diferentes prospectados</small></div><div class="g-rank">'
+    +rows.map(function(r,i){var x=r.x,st=r.s,lb=ST_LBL[st.st],me=x.nome===S.user.nome,ritmo=x.metaMes?Math.min(100,st.esperado/x.metaMes*100):0;
+      var med=['🥇','🥈','🥉'][i]||(i+1)+'º';
+      return '<div class="g-row'+(me?' me':'')+(st.st==='bateu'?' win':'')+'"><span class="g-pos">'+(x.feitos?med:'–')+'</span>'
+        +'<span class="g-av">'+esc(x.nome.split(' ').filter(function(w){return w.length>2;}).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase())+'</span>'
+        +'<div class="g-mid"><div class="g-name">'+esc(x.nome)+(me?' <small>(você)</small>':'')+(st.seq>=3?' <span class="g-fire">🔥'+st.seq+'</span>':'')+'</div>'
+        +'<div class="g-bar"'+tipAttr('<b>'+esc(x.nome)+'</b><br>'+x.feitos+' de '+x.metaMes+' clientes<br>Ritmo esperado hoje: '+st.esperado)+'><i style="width:'+st.pct+'%"></i>'+(G.mes===G.hoje.slice(0,7)&&st.st!=='bateu'?'<em style="left:'+ritmo+'%"></em>':'')+'</div></div>'
+        +'<div class="g-num"><b>'+x.feitos+'</b>/'+x.metaMes+'<span class="g-st '+lb[1]+'">'+lb[0]+'</span></div></div>';}).join('')
+    +'</div><div class="g-lg"><span><i class="ok"></i>prospectado</span><span><i class="mk"></i>onde deveria estar hoje</span></div></div>';
+  if(isGestao())h+='<div class="panel"><div class="panel-t">📈 Histórico dos últimos 6 meses <small id="gHistSub">'+(alvo?esc(alvo):'equipe toda')+'</small></div><div id="gHistChart"></div><div class="tbl-wrap" style="margin-top:14px"><table class="t" id="gHist"></table></div></div>';
+  // regras
+  h+='<div class="panel g-rules"><div class="panel-t">📜 Como funciona</div><ul>'
+    +'<li><b>Meta do mês</b> = meta diária de prospecção × dias úteis (seg a sex). Neste mês: <b>'+G.uteis.length+' dias úteis</b>.</li>'
+    +'<li><b>Conta só prospecção ativa</b>: clientes que você procurou (ligação, WhatsApp, visita), registrados no botão <b>🎯 Prospecção</b> ou leads com origem <b>Prospecção ativa</b>. Leads de anúncio e do site não contam.</li>'
+    +'<li><b>Cada cliente conta 1 vez no mês</b>, pelo telefone. Sem telefone válido não conta.</li>'
+    +'<li>Quem bater a meta do mês ganha o <b>🎁 prêmio misterioso</b>, que muda todo mês e só é revelado para quem bate a meta. Registros falsos tiram o vendedor do desafio.</li>'
+    +'<li>O prêmio é concedido por desempenho, por liberalidade da Peso Certo, e pode ser alterado ou suspenso.</li></ul></div>';
+  $('gBody').innerHTML=h;
+  if(isGestao())renderGameHist();
+}
+function salvarPremio(){
+  var d=$('pzDesc').value.trim();if(!d){$('pzDesc').focus();return toast('Escreva qual é o prêmio');}
+  api('setPremio',{mes:S.game.mes,descricao:d,dica:$('pzDica').value.trim(),valor:num($('pzVal').value)}).then(function(r){
+    if(!r.ok)return alert(r.error||'Erro ao salvar');toast('🎁 Prêmio de '+nomeMes(S.game.mes)+' salvo');S.gameHist=null;loadGame();});
+}
+function mesesAtras(n){var d=new Date(),o=[];for(var i=n-1;i>=0;i--){var x=new Date(d.getFullYear(),d.getMonth()-i,1);o.push(x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0'));}return o;}
+function loadGameHist(){
+  if(S.gameHist&&S.gameHist.t>Date.now()-120000)return;
+  var ms=mesesAtras(6);
+  Promise.all(ms.map(function(m){return api('ranking',{mes:m});})).then(function(rs){
+    S.gameHist={t:Date.now(),meses:rs.filter(function(r){return r&&r.ok;})};if(S.view==='game')renderGameHist();});
+}
+function renderGameHist(){
+  var el=$('gHist');if(!el)return;if(!S.gameHist){el.innerHTML='<tr><td class="empty">Carregando histórico…</td></tr>';return;}
+  var alvo=$('gVend').value,hj=todayStr().slice(0,7);
+  function pv(G){return +(G.premio&&G.premio.valor)||0;}
+  // ignora meses antes de o CRM começar a ser usado (sem nenhum registro de prospecção)
+  var H=S.gameHist.meses.filter(function(G){return G.mes===hj||G.ranking.some(function(x){return x.feitos>0;});});
+  if(!H.length){el.innerHTML='<tr><td class="empty">Ainda não há meses com registros.</td></tr>';$('gHistChart').innerHTML='';return;}
+  var nomes={};H.forEach(function(G){G.ranking.forEach(function(x){nomes[x.nome]=1;});});
+  var vs=Object.keys(nomes).filter(function(n){return !alvo||n===alvo;});
+  function cel(G,n){var x=G.ranking.filter(function(r){return r.nome===n;})[0];if(!x)return null;var st=statusVend(x,G);return {x:x,st:st};}
+  var th='<thead><tr><th>Vendedor</th>'+H.map(function(G){return '<th>'+MESES[+G.mes.slice(5,7)-1].slice(0,3)+'/'+G.mes.slice(2,4)+'</th>';}).join('')+'<th>Metas batidas*</th><th>Prêmios (R$)</th></tr></thead><tbody>';
+  vs.forEach(function(n){var bat=0,val=0;
+    th+='<tr><td>'+esc(n)+'</td>'+H.map(function(G){var c=cel(G,n);if(!c)return '<td class="c-muted">—</td>';var ok=c.st.st==='bateu';if(ok){bat++;val+=pv(G);}
+      var cls=ok?'g-hok':c.st.st==='ritmo'?'g-hrit':c.st.pct>=80?'g-hmid':'g-hlow';
+      return '<td><span class="g-hc '+cls+'"'+tipAttr('<b>'+esc(n)+' · '+nomeMes(G.mes)+'</b><br>'+c.x.feitos+' de '+c.x.metaMes+' ('+c.st.pct.toFixed(0)+'%)'+(ok?'<br>🎁 '+esc((G.premio&&G.premio.descricao)||'prêmio')+(pv(G)?' ('+R$(pv(G))+')':''):''))+'>'+(ok?'🏆 ':'')+c.x.feitos+'<small>/'+c.x.metaMes+'</small></span></td>';}).join('')
+      +'<td>'+bat+' de '+H.filter(function(G){return G.mes<hj;}).length+'</td><td class="c-green">'+(val?R$(val):'—')+'</td></tr>';});
+  var totB=0;
+  th+='<tr class="tot"><td>Prêmios do mês</td>'+H.map(function(G){var n=G.ranking.filter(function(x){return (!alvo||x.nome===alvo)&&x.feitos>=x.metaMes;}).length;totB+=n*pv(G);return '<td'+tipAttr(esc((G.premio&&G.premio.descricao)||'prêmio não definido'))+'>'+n+(pv(G)?' <span class="c-green">· '+R$k(n*pv(G))+'</span>':'')+'</td>';}).join('')+'<td></td><td class="c-green">'+R$(totB)+'</td></tr></tbody>';
+  el.innerHTML=th+'<caption style="caption-side:bottom;text-align:left;font-size:11px;color:var(--text3);padding-top:8px">*Conta só meses já fechados. Meses antes de começar a usar o CRM não aparecem.</caption>';
+  // gráfico: % da meta por mês (equipe ou vendedor filtrado)
+  var lbl=H.map(function(G){return MESES[+G.mes.slice(5,7)-1].slice(0,3)+'/'+G.mes.slice(2,4);});
+  var vals=H.map(function(G){var rs=G.ranking.filter(function(x){return !alvo||x.nome===alvo;});var f=rs.reduce(function(a,x){return a+x.feitos;},0),m=rs.reduce(function(a,x){return a+x.metaMes;},0);return m?Math.round(f/m*100):0;});
+  var tips=H.map(function(G,i){var rs=G.ranking.filter(function(x){return !alvo||x.nome===alvo;});var f=rs.reduce(function(a,x){return a+x.feitos;},0),m=rs.reduce(function(a,x){return a+x.metaMes;},0);return '<b>'+nomeMes(G.mes)+'</b><br>'+f+' de '+m+' clientes · '+vals[i]+'% da meta';});
+  $('gHistChart').innerHTML='<div class="lg"><span><i style="background:#2a78d6"></i>% da meta de prospecção '+(alvo?'de '+esc(alvo):'da equipe')+'</span></div>'+colSVG(lbl,vals,tips,'gHistChart',function(v){return Math.round(v)+'%';},100);
+  $('gHistSub').textContent=(alvo||'equipe toda')+' · '+nomeMes(H[0].mes)+' a '+nomeMes(H[H.length-1].mes);
 }
 
 // ================== PRODUTOS (Gestão) ==================
