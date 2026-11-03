@@ -551,7 +551,9 @@ table.t td .mb>i{display:block;height:100%}
       <div class="tbl-wrap"><table class="t" id="dTabela"></table></div>
     </div>
     <div class="panel"><div class="panel-t">📦 Produtos mais cotados <small id="dProdSub"></small></div><div class="tbl-wrap"><table class="t" id="dProd"></table></div></div>
-    <div class="panel"><div class="panel-t">💳 Forma de pagamento e desconto <small>vendas fechadas no mês</small></div><div class="tbl-wrap"><table class="t" id="dPag"></table></div></div>
+    <div class="panel"><div class="panel-t">📣 Origem dos leads em detalhe <small id="dOrgSub"></small></div><div class="tbl-wrap"><table class="t" id="dOrgTab"></table></div></div>
+    <div class="panel"><div class="panel-t">💳 Forma de pagamento e desconto <small>vendas fechadas no mês</small></div><div class="tbl-wrap"><table class="t" id="dPag"></table></div><div class="pp-hint" id="dPagNota" style="margin-top:8px"></div></div>
+    <div class="panel"><div class="panel-t">🗂️ Forma de pagamento pretendida <small>leads que entraram no mês · o que o cliente sinalizou</small></div><div class="tbl-wrap"><table class="t" id="dPagInt"></table></div></div>
     <div class="panel"><div class="panel-t">🚨 Precisa de atenção agora <small>sem contato há +24h e follow-ups atrasados</small></div><div class="alert-list" id="dAlertas"></div></div>
   </div></div>
 </div>
@@ -589,7 +591,7 @@ var STAGES = [
   {k:'Perdido',           ic:'❌', c:'#dc2626'}
 ];
 var OPEN = ['Novo lead','Em atendimento','Orçamento enviado','Negociação'];
-var ORIGENS = ['Meta Ads','Landing page','Indicação','Loja','Prospecção ativa','Site','Outro'];
+var ORIGENS = ['Meta Ads','Landing page','Cliente antigo','Indicação','Loja','Prospecção ativa','Site','Outro'];
 var TIPOS = ['Restaurante','Lanchonete','Padaria','Açougue','Mercado','Pizzaria','Hotel','Bar','Sorveteria','Outro'];
 var HORAS_EXCLUIR = 24; // vendedor pode apagar o próprio lead até 24h depois de criar
 var PAGAMENTOS = ['À vista / PIX','Cartão 6x','Cartão 12x','Cartão 21x','Boleto','A definir'];
@@ -1135,6 +1137,10 @@ function modal(html,wide){$('modalRoot').innerHTML='<div class="modal-bg" onclic
 function closeModal(){$('modalRoot').innerHTML='';}
 function chipsHtml(id,opts,sel){return '<div class="chips" id="'+id+'">'+opts.map(function(o){return '<button type="button" class="chip'+(o===sel?' on':'')+'" onclick="pickChip(this)">'+esc(o)+'</button>';}).join('')+'</div>';}
 function pickChip(b){var p=b.parentNode;var was=b.classList.contains('on');p.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});if(!was)b.classList.add('on');}
+function chipsMultiHtml(id,opts,selStr){var sel=splitPag(selStr);return '<div class="chips" id="'+id+'" data-multi="1">'+opts.map(function(o){return '<button type="button" class="chip'+(sel.indexOf(o)>=0?' on':'')+'" onclick="pickMulti(this)">'+esc(o)+'</button>';}).join('')+'</div><div class="pp-hint">Pode marcar mais de uma.</div>';}
+function pickMulti(b){var p=b.parentNode,ex='A definir';if(b.textContent===ex){var was=b.classList.contains('on');p.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});if(!was)b.classList.add('on');return;}p.querySelectorAll('.chip').forEach(function(c){if(c.textContent===ex)c.classList.remove('on');});b.classList.toggle('on');}
+function chipMultiVal(id){return Array.prototype.map.call(document.querySelectorAll('#'+id+' .chip.on'),function(c){return c.textContent;}).join(' + ');}
+function splitPag(s){return String(s||'').split(/\s*\+\s*/).map(function(x){return x.trim();}).filter(Boolean);}
 function chipVal(id){var c=document.querySelector('#'+id+' .chip.on');return c?c.textContent:'';}
 function vendSelectHtml(id,sel){return '<select id="'+id+'">'+vendedores().map(function(v){return '<option'+(v===sel?' selected':'')+'>'+esc(v)+'</option>';}).join('')+'</select>';}
 
@@ -1148,7 +1154,7 @@ function openNew(){
     +'<div class="grid2 g-fix"><div class="f"><label>Valor estimado (R$)</label><input id="nValor" class="mono" inputmode="numeric" placeholder="0,00" oninput="maskMoney(this);descHint(\'nValor\',\'nDesc\',\'nDescH\')"></div>'
     +'<div class="f"><label>Possível desconto (%)</label><input id="nDesc" class="mono" inputmode="decimal" placeholder="0" oninput="pctIn(this);descHint(\'nValor\',\'nDesc\',\'nDescH\')"></div></div>'
     +'<div class="pp-hint c-green" id="nDescH" style="margin:-6px 0 10px;font-weight:700"></div>'
-    +'<div class="f"><label>Possível forma de pagamento</label>'+chipsHtml('nPag',PAGAMENTOS,'')+'</div>'
+    +'<div class="f"><label>Possível forma de pagamento</label>'+chipsMultiHtml('nPag',PAGAMENTOS,'')+'</div>'
     +'<div class="f"><label>De onde veio?</label>'+chipsHtml('nOrigem',ORIGENS,'Meta Ads')+'<div class="pp-hint">🎯 Só leads de <b>Prospecção ativa</b> contam para a meta diária. Prospectou alguém? Use o botão <b>🎯 Prospecção</b>.</div></div>'
     +(isGestao()?'<div class="f"><label>Vendedor responsável</label>'+vendSelectHtml('nVend','')+'</div>':'')
     +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveNew()">Criar lead</button></div>');
@@ -1163,7 +1169,7 @@ function saveNew(){
   if(dup&&!confirm('Já existe um lead aberto com esse WhatsApp: '+dup['Nome Cliente']+' ('+dup['Vendedor']+'). Criar mesmo assim?'))return;
   var l={'ID':makeId(),'Criado em':nowISO(),'Atualizado em':nowISO(),'Vendedor':isGestao()?$('nVend').value:S.user.nome,
     'Nome Cliente':nome,'Celular':cel,'Email':($('nEmail').value||'').trim().toLowerCase(),'Cidade':'','Tipo de Negócio':'','Origem':chipVal('nOrigem'),'Produto':itensFinal('nProd'),
-    'Valor Estimado':num($('nValor').value),'Desconto %':num($('nDesc').value),'Forma Pagamento':chipVal('nPag'),'Status':'Novo lead','Etapa Desde':nowISO(),'Próximo Contato':'','Próxima Ação':'',
+    'Valor Estimado':num($('nValor').value),'Desconto %':num($('nDesc').value),'Forma Pagamento':chipMultiVal('nPag'),'Status':'Novo lead','Etapa Desde':nowISO(),'Próximo Contato':'','Próxima Ação':'',
     'Valor Fechado':0,'Data Encerramento':'','Motivo Perda':'','Observações':''};
   closeModal();
   saveLead(l,{'Data':nowISO(),'ID Lead':l['ID'],'Cliente':nome,'Vendedor':l['Vendedor'],'De':'','Para':'Novo lead','Por':S.user.nome},contatoDe(l,'Novo lead'))
@@ -1174,11 +1180,11 @@ function saveNew(){
 function askClose(l){
   modal('<h3>✅ Fechar venda</h3><div class="sub">'+esc(l['Nome Cliente'])+'</div>'
     +'<div class="f"><label>Valor final da venda (R$) *</label><input id="cValor" class="mono" inputmode="numeric" value="'+moneyIn(valorLiq(l))+'" oninput="maskMoney(this)">'+(num(l['Desconto %'])?'<div class="pp-hint">Valor estimado '+R$(num(l['Valor Estimado']))+' com '+pctFmt(l['Desconto %'])+' de desconto. Ajuste se fechou diferente.</div>':'')+'</div>'
-    +'<div class="f"><label>Forma de pagamento</label>'+chipsHtml('cPag',PAGAMENTOS.filter(function(x){return x!=='A definir';}),l['Forma Pagamento'])+'</div>'
+    +'<div class="f"><label>Forma de pagamento</label>'+chipsMultiHtml('cPag',PAGAMENTOS.filter(function(x){return x!=='A definir';}),l['Forma Pagamento'])+'</div>'
     +itensHtml('cProd','O que foi vendido',l['Produto'])
     +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-green" id="cOk">Confirmar venda 🎉</button></div>');
   $('cOk').onclick=function(){var v=num($('cValor').value);if(!v){$('cValor').focus();return toast('Informe o valor da venda');}
-    var pr=itensFinal('cProd'),fp=chipVal('cPag')||l['Forma Pagamento'];closeModal();commitMove(l,'Fechado',{'Valor Fechado':v,'Produto':pr,'Forma Pagamento':fp});};
+    var pr=itensFinal('cProd'),fp=chipMultiVal('cPag')||l['Forma Pagamento'];closeModal();commitMove(l,'Fechado',{'Valor Fechado':v,'Produto':pr,'Forma Pagamento':fp});};
   itensInit('cProd');
   setTimeout(function(){var e=$('cValor');if(e){e.focus();e.select();}},50);
 }
@@ -1222,7 +1228,7 @@ function openLead(id){
     +'</div>'+itensHtml('eProd','Produtos de interesse',l['Produto'])+'<div class="grid2">'
     +'<div class="f"><label>Valor estimado (R$)</label><input id="eValor" class="mono" inputmode="numeric" value="'+moneyIn(l['Valor Estimado'])+'" oninput="maskMoney(this);descHint(\'eValor\',\'eDesc\',\'eDescH\')"></div>'
     +'<div class="f"><label>Possível desconto (%)</label><input id="eDesc" class="mono" inputmode="decimal" value="'+(num(l['Desconto %'])?String(num(l['Desconto %'])).replace('.',','):'')+'" placeholder="0" oninput="pctIn(this);descHint(\'eValor\',\'eDesc\',\'eDescH\')"><div class="pp-hint c-green" id="eDescH" style="font-weight:700"></div></div>'
-    +'<div class="f"><label>Forma de pagamento</label><select id="ePag"><option value="">—</option>'+PAGAMENTOS.map(function(o){return '<option'+(o===l['Forma Pagamento']?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div>'
+    +'<div class="f"><label>Forma de pagamento</label>'+chipsMultiHtml('ePag',PAGAMENTOS,l['Forma Pagamento'])+'</div>'
     +'<div class="f"><label>Origem</label><select id="eOrig"><option value="">—</option>'+ORIGENS.map(function(o){return '<option'+(o===l['Origem']?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div>'
     +(isGestao()?'<div class="f"><label>Vendedor</label>'+vendSelectHtml('eVend',l['Vendedor'])+'</div>':'')
     +(st==='Fechado'?'<div class="f"><label>Valor fechado (R$)</label><input id="eFech" class="mono" inputmode="numeric" value="'+moneyIn(l['Valor Fechado'])+'" oninput="maskMoney(this)"></div>':'')
@@ -1247,7 +1253,7 @@ function saveDetail(id){
   var l=getLead(id);if(!l)return;
   var nome=$('eNome').value.trim();if(!nome)return toast('O nome não pode ficar vazio');
   var n=Object.assign({},l,{'Nome Cliente':nome,'Celular':$('eCel').value.trim(),'Email':$('eEmail').value.trim().toLowerCase(),'Cidade':$('eCid').value.trim(),
-    'Tipo de Negócio':$('eTipo').value,'Produto':itensFinal('eProd'),'Valor Estimado':num($('eValor').value),'Desconto %':num($('eDesc').value),'Forma Pagamento':$('ePag').value,'Origem':$('eOrig').value,
+    'Tipo de Negócio':$('eTipo').value,'Produto':itensFinal('eProd'),'Valor Estimado':num($('eValor').value),'Desconto %':num($('eDesc').value),'Forma Pagamento':chipMultiVal('ePag'),'Origem':$('eOrig').value,
     'Próximo Contato':$('eProx').value,'Próxima Ação':$('eAcao').value.trim()});
   if(isGestao())n['Vendedor']=$('eVend').value;
   if($('eFech'))n['Valor Fechado']=num($('eFech').value);
@@ -1786,6 +1792,16 @@ function renderDash(){
   var ok=Object.keys(org).sort(function(a,b){return org[b].l-org[a].l;});
   $('dOrigem').innerHTML=rankBars(ok.map(function(o){var x=org[o];return {l:o,v:x.l,t:x.v+' venda'+(x.v!==1?'s':'')+' · <b>'+(x.l?(x.v/x.l*100).toFixed(0):0)+'%</b>',tip:'<b>'+esc(o)+'</b><br>'+x.l+' leads · '+x.v+' vendas<br>Conversão '+(x.l?(x.v/x.l*100).toFixed(1):0)+'%<br>Faturado '+R$(x.f)};}),VZ.s1,'Nenhum lead entrou neste mês.');
 
+  // origem detalhada
+  var jaOrc={};S.movs.forEach(function(x){if(['Orçamento enviado','Negociação','Fechado'].indexOf(x['Para'])>=0)jaOrc[x['ID Lead']]=1;});
+  var od={};base.forEach(function(l){if(!inM(l['Criado em']))return;var o=l['Origem']||'Não informada';var x=od[o]=od[o]||{l:0,v:0,f:0,ab:0,pipe:0,p:0,orc:0};x.l++;
+    if(l['Status']==='Fechado'){x.v++;x.f+=num(l['Valor Fechado'])||num(l['Valor Estimado']);}else if(l['Status']==='Perdido')x.p++;else{x.ab++;x.pipe+=num(l['Valor Estimado']);}
+    if(['Orçamento enviado','Negociação','Fechado'].indexOf(l['Status'])>=0||jaOrc[l['ID']])x.orc++;});
+  var odk=Object.keys(od).sort(function(a,b){return od[b].l-od[a].l;}),odT={l:0,v:0,f:0,ab:0,pipe:0,p:0,orc:0};odk.forEach(function(k){for(var q in odT)odT[q]+=od[k][q];});
+  function odRow(n,x,b){var c=x.l?x.v/x.l*100:0;return '<tr'+(b?' style="font-weight:800;border-top:2px solid var(--border)"':'')+'><td>'+esc(n)+'</td><td>'+x.l+'</td><td>'+(odT.l?(x.l/odT.l*100).toFixed(0):0)+'%</td><td>'+x.orc+'</td><td class="c-green">'+x.v+'</td><td>'+c.toFixed(1)+'%</td><td class="c-green">'+R$k(x.f)+'</td><td>'+(x.v?R$k(x.f/x.v):'—')+'</td><td class="c-amber">'+x.ab+(x.pipe?' · '+R$k(x.pipe):'')+'</td><td class="c-red">'+x.p+'</td></tr>';}
+  $('dOrgTab').innerHTML=odk.length?'<thead><tr><th>Origem</th><th>Leads</th><th>% leads</th><th>Chegou a orçamento</th><th>Vendas</th><th>Conversão</th><th>Faturado</th><th>Ticket médio</th><th>Em andamento</th><th>Perdidos</th></tr></thead><tbody>'+odk.map(function(k){return odRow(k,od[k]);}).join('')+odRow('Total',odT,1)+'</tbody>':'<tr><td class="empty">Nenhum lead entrou neste mês.</td></tr>';
+  $('dOrgSub').textContent=(vsel?vsel:'equipe toda')+' · leads criados no mês e o que aconteceu com eles';
+
   // perdas
   var mk=Object.keys(T.motivos).sort(function(a,b){return T.motivos[b]-T.motivos[a];});
   $('dPerdas').innerHTML=rankBars(mk.map(function(k){var n=T.motivos[k];return {l:k,v:n,t:'<b>'+(n/T.perdas*100).toFixed(0)+'%</b>',tip:'<b>'+esc(k)+'</b><br>'+n+' venda'+(n>1?'s':'')+' perdida'+(n>1?'s':'')+' · '+(n/T.perdas*100).toFixed(0)+'% das perdas'};}),VZ.bad,'Nenhuma venda perdida neste mês. 👏');
@@ -1828,9 +1844,21 @@ function renderDash(){
   $('dProdSub').textContent=prk.length?'top '+Math.min(20,prk.length)+' de '+prk.length+' produtos · '+totCot+' leads com produto no mês':'';
 
   // forma de pagamento
-  var pg={};base.forEach(function(l){if(l['Status']!=='Fechado'||!inM(l['Data Encerramento']))return;var k=l['Forma Pagamento']||'Não informada';pg[k]=pg[k]||{n:0,f:0,d:0,nd:0};pg[k].n++;pg[k].f+=num(l['Valor Fechado'])||num(l['Valor Estimado']);var dd=num(l['Desconto %']);if(!dd&&num(l['Valor Estimado'])&&num(l['Valor Fechado'])&&num(l['Valor Fechado'])<num(l['Valor Estimado']))dd=(1-num(l['Valor Fechado'])/num(l['Valor Estimado']))*100;pg[k].d+=dd;pg[k].nd++;});
-  var pk=Object.keys(pg).sort(function(a,b){return pg[b].f-pg[a].f;}),ptot=pk.reduce(function(a,k){return a+pg[k].f;},0);
-  $('dPag').innerHTML=pk.length?'<thead><tr><th>Forma</th><th>Vendas</th><th>Faturado</th><th>% do total</th><th>Desconto médio</th></tr></thead><tbody>'+pk.map(function(k){var x=pg[k];return '<tr><td>'+esc(k)+'</td><td>'+x.n+'</td><td class="c-green">'+R$k(x.f)+'</td><td>'+(ptot?(x.f/ptot*100).toFixed(0):0)+'%</td><td>'+(x.nd?pctFmt(x.d/x.nd):'—')+'</td></tr>';}).join('')+'</tbody>':'<tr><td class="empty">Nenhuma venda fechada neste mês.</td></tr>';
+  var pg={},nVend=0,nComb=0,ptot=0,combos={};base.forEach(function(l){if(l['Status']!=='Fechado'||!inM(l['Data Encerramento']))return;
+    var fs=splitPag(l['Forma Pagamento']);if(!fs.length)fs=['Não informada'];var vf=num(l['Valor Fechado'])||num(l['Valor Estimado']);nVend++;ptot+=vf;
+    if(fs.length>1){nComb++;var ck=fs.join(' + ');combos[ck]=(combos[ck]||0)+1;}
+    var dd=num(l['Desconto %']);if(!dd&&num(l['Valor Estimado'])&&num(l['Valor Fechado'])&&num(l['Valor Fechado'])<num(l['Valor Estimado']))dd=(1-num(l['Valor Fechado'])/num(l['Valor Estimado']))*100;
+    fs.forEach(function(k){var x=pg[k]=pg[k]||{n:0,so:0,f:0,d:0,nd:0};x.n++;if(fs.length===1)x.so++;x.f+=vf;x.d+=dd;x.nd++;});});
+  var pk=Object.keys(pg).sort(function(a,b){return pg[b].n-pg[a].n||pg[b].f-pg[a].f;});
+  $('dPag').innerHTML=pk.length?'<thead><tr><th>Forma</th><th>Vendas que usaram</th><th>% das vendas</th><th>Só essa forma</th><th>Combinada</th><th>Valor dessas vendas</th><th>Ticket médio</th><th>Desconto médio</th></tr></thead><tbody>'+pk.map(function(k){var x=pg[k];return '<tr><td>'+esc(k)+'</td><td><span class="mb"><i style="width:'+(x.n/pg[pk[0]].n*100)+'%;background:var(--blue)"></i></span>'+x.n+'</td><td>'+(nVend?(x.n/nVend*100).toFixed(0):0)+'%</td><td>'+x.so+'</td><td>'+(x.n-x.so)+'</td><td class="c-green">'+R$k(x.f)+'</td><td>'+R$k(x.f/x.n)+'</td><td>'+(x.nd?pctFmt(x.d/x.nd):'—')+'</td></tr>';}).join('')+'</tbody>':'<tr><td class="empty">Nenhuma venda fechada neste mês.</td></tr>';
+  var ckk=Object.keys(combos).sort(function(a,b){return combos[b]-combos[a];});
+  $('dPagNota').innerHTML=nVend?nVend+' venda'+(nVend>1?'s':'')+' · '+R$k(ptot)+' faturado · '+nComb+' com pagamento combinado'+(ckk.length?' (mais comum: <b>'+esc(ckk[0])+'</b> · '+combos[ckk[0]]+'x)':'')+'. <br>⚠️ Venda combinada aparece em mais de uma linha com o valor total, então a coluna "Valor dessas vendas" não soma o faturamento — o total real é o de cima.':'';
+
+  // forma pretendida (leads do mês)
+  var pi={},nL=0,nSem=0;base.forEach(function(l){if(!inM(l['Criado em']))return;nL++;var fs=splitPag(l['Forma Pagamento']);if(!fs.length){nSem++;return;}
+    fs.forEach(function(k){var x=pi[k]=pi[k]||{l:0,v:0,p:0,ab:0};x.l++;if(l['Status']==='Fechado')x.v++;else if(l['Status']==='Perdido')x.p++;else x.ab++;});});
+  var pik=Object.keys(pi).sort(function(a,b){return pi[b].l-pi[a].l;});
+  $('dPagInt').innerHTML=pik.length?'<thead><tr><th>Forma sinalizada</th><th>Leads</th><th>% dos leads</th><th>Fecharam</th><th>Conversão</th><th>Em andamento</th><th>Perdidos</th></tr></thead><tbody>'+pik.map(function(k){var x=pi[k];return '<tr><td>'+esc(k)+'</td><td>'+x.l+'</td><td>'+(nL?(x.l/nL*100).toFixed(0):0)+'%</td><td class="c-green">'+x.v+'</td><td>'+(x.l?(x.v/x.l*100).toFixed(0):0)+'%</td><td class="c-amber">'+x.ab+'</td><td class="c-red">'+x.p+'</td></tr>';}).join('')+'<tr class="c-muted"><td>Sem forma informada</td><td>'+nSem+'</td><td>'+(nL?(nSem/nL*100).toFixed(0):0)+'%</td><td colspan="4"></td></tr></tbody>':'<tr><td class="empty">Nenhum lead do mês com forma de pagamento informada.</td></tr>';
 
   // alertas
   var al=base.filter(function(l){var u=urgOf(l);return u==='semcontato'||u==='atrasado';});
